@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 export const getAll = async () => {
   try {
-    let listaPacientes = await Patients.find()
+    let listaPacientes = await Patients.find({ status: { $gt: 0 } })
       .populate('idUsuario') // Con esto relaciona el campo y segunel id, trae los datos del usuario
       .exec();
     return {
