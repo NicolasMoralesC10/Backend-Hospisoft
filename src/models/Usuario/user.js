@@ -14,9 +14,9 @@ const usuarioSchema = new Schema(
       required: true
     },
     rol: {
-      type: Types.ObjectId, // Esto es para la foranea de roles
-      ref: "Roles",
-      required: true
+      type: String,/*  Types.ObjectId, */ // Esto es para la foranea de roles
+      /* ref: "Roles", */
+      required: false
     },
     status: {
       type: Number,

@@ -39,8 +39,8 @@ router.post(
       nombreUsuario: Joi.string().min(3).required(), // Aseguramos que el nombre sea una cadena y tenga al menos 3 caracteres
       passwordUser: Joi.string().min(6).required(), // La contraseña debe tener al menos 6 caracteres
       emailUser: Joi.string().email().required(), // El email debe ser válido
-      rol: Joi.string().valid("admin", "user").required(), // El rol debe ser 'admin' o 'user'
-      pacienteId: Joi.string().hex().length(24).required() // ID del paciente, que debe ser un ObjectId
+      rol: Joi.string().required(), // El rol debe ser 'admin' o 'user'
+     /*  pacienteId: Joi.string().hex().length(24).required() */ // ID del paciente, que debe ser un ObjectId
     })
   }),
   async (req, res) => {

@@ -21,7 +21,7 @@ export const listarTodos = async () => {
 
 export const nuevo = async (data) => {
   try {
-    const { nombreUsuario, passwordUser, emailUser, rol, pacienteId } = data;
+    const { nombreUsuario, passwordUser, emailUser, rol } = data;
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(passwordUser, salt);
@@ -31,7 +31,6 @@ export const nuevo = async (data) => {
       passwordUser: hashedPassword,
       emailUser,
       rol,
-      pacienteId: new Types.ObjectId(pacienteId),
       status: 1
     });
 
