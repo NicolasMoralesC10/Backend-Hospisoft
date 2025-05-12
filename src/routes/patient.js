@@ -46,7 +46,7 @@ router.post(
   celebrate({
     body: Joi.object({
       nombre: Joi.string().required(),
-      fecha: Joi.date().required(),
+      nacimiento: Joi.date().required(),
       documento: Joi.number().required(),
       telefono: Joi.number().required(),
       eps: Joi.string().required(),
@@ -73,7 +73,7 @@ router.post(
     body: Joi.object({
       id: Joi.string().required(),
       nombre: Joi.string().required(),
-      fecha: Joi.date().required(),
+      nacimiento: Joi.date().required(),
       documento: Joi.number().required(),
       eps: Joi.string().required(),
       telefono: Joi.number().required(),

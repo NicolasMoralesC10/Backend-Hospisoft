@@ -1,163 +1,136 @@
 import Usuarios from "../../models/Usuario/user.js";
 import Patient from "../../models/Paciente/patient.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { Types } from "mongoose";
 
-import mongoose from "mongoose";
 
-// Funciones de la librería
-
-const listarTodos = async (req, res) => {
+export const listarTodos = async () => {
   try {
-    // Consultar todos sin filtro
-    const listarUsuarios = await Usuarios.find().exec();
-    res.status(200).send({
-      exito: true,
-      listarUsuarios,
-    });
-  } catch (error) {
-    res.status(500).send({
-      exito: false,
-      mensaje: "Error en la consulta",
-    });
-  }
-};
-
-const nuevo = async (req, res) => {
-  let datos = {
-    nombreUsuario: req.body.nombreUsuario,
-    passwordUser: req.body.passwordUser,
-    emailUser: req.body.emailUser,
-    rol: req.body.rol,
-    status: req.body.status || 1,
-  };
-
-  try {
-    const usuarioNuevo = new Usuarios(datos);
-    await usuarioNuevo.save();
-
-    return res.send({
+    const listaUsuarios = await Usuarios.find({ status: { $gt: 0 } });
+    return {
       estado: true,
-      mensaje: "Inserción exitosa",
-      usuario: usuarioNuevo,
-    });
+      data: listaUsuarios
+    };
   } catch (error) {
-    return res.send({
+    return {
       estado: false,
-      mensaje: `Ha ocurrido un error en la consulta: ${error}`,
-    });
+      mensaje: `Error: ${error.message}`
+    };
   }
 };
 
-
-const buscarPorId = async (req, res) => {
-  let id = req.params.id;
-
+export const nuevo = async (data) => {
   try {
-    //Logica de buscar  mostrar el resultado
-    //let consulta = await producto.find(id).exec();
-    let consulta = await Usuarios.findById(id).exec();
+    const { nombreUsuario, passwordUser, emailUser, rol, pacienteId } = data;
 
-    return res.send({
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(passwordUser, salt);
+
+    const nuevoUsuario = new Usuarios({
+      nombreUsuario,
+      passwordUser: hashedPassword,
+      emailUser,
+      rol,
+      pacienteId: new Types.ObjectId(pacienteId),
+      status: 1
+    });
+
+    await nuevoUsuario.save();
+
+    return {
       estado: true,
-      mensaje: `Busqueda exitosa`,
-      consulta: consulta,
-    });
+      mensaje: "Usuario registrado exitosamente",
+      id: nuevoUsuario._id
+    };
   } catch (error) {
-    return res.send({
+    return {
       estado: false,
-      mensaje: `Error, no se pudo realizar la consulta`,
-    });
+      mensaje: `Error: ${error.message}`
+    };
   }
 };
 
-const buscarPorIdUser = async (req, res) => {
-  const idUsuario = req.params.id;
-
+export const buscarPorId = async (data) => {
   try {
-    const usuarioId = new mongoose.Types.ObjectId(idUsuario);
+    const id = data.id;
+    const usuario = await Usuarios.findById(id);
 
+    return {
+      estado: true,
+      mensaje: "Consulta exitosa",
+      result: usuario
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error: ${error.message}`
+    };
+  }
+};
+
+export const buscarPorIdUser = async (data) => {
+  try {
+    const usuarioId = new Types.ObjectId(data.id);
     const pacienteRelacionado = await Patient.findOne({ idUsuario: usuarioId }).exec();
 
-    if (pacienteRelacionado) {
-      return res.send({
-        estado: true,
-        relacionado: true,
-        mensaje: "El usuario está relacionado con un paciente.",
-        paciente: pacienteRelacionado,
-      });
-    } else {
-      return res.send({
-        estado: true,
-        relacionado: false,
-        mensaje: "El usuario no está relacionado con ningún paciente.",
-      });
-    }
+    return {
+      estado: true,
+      relacionado: !!pacienteRelacionado,
+      mensaje: pacienteRelacionado
+        ? "El usuario está relacionado con un paciente."
+        : "El usuario no está relacionado con ningún paciente.",
+      paciente: pacienteRelacionado || null
+    };
   } catch (error) {
-    console.error("Error en la verificación:", error);
-    return res.status(500).send({
+    return {
       estado: false,
-      mensaje: "Error al verificar la relación con paciente.",
-    });
+      mensaje: `Error: ${error.message}`
+    };
   }
 };
 
-//Actualizar de acuerdo al producto al id del producto
-
-const actualizarPorId = async (req, res) => {
-  //Recibe el parametro de la consulta
-
-  let id = req.params.id;
-
-  let datos = {
-    nombreUsuario: req.body.nombreUsuario,
-    passwordUser: req.body.passwordUser,
-    emailUser: req.body.emailUser,
-    rol: req.body.rol,
-    status: req.body.status || 1,
-  };
+export const actualizarPorId = async (data) => {
   try {
-    let consulta = await Usuarios.findByIdAndUpdate(id, datos).exec();
-    return res.send({
+    const id = data.id;
+
+    const datos = {
+      nombreUsuario: data.nombreUsuario,
+      passwordUser: data.passwordUser,
+      emailUser: data.emailUser,
+      rol: data.rol,
+      status: data.status || 1
+    };
+
+    const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, datos, { new: true });
+
+    return {
       estado: true,
-      mensaje: `Actualizacion exitosa`,
-      consulta: consulta,
-    });
+      mensaje: "Actualización exitosa",
+      result: usuarioActualizado
+    };
   } catch (error) {
-    return res.send({
-      estado: true,
-      mensaje: `Error al actualizar`,
-      consulta: consulta,
-    });
-  }
-};
-
-const eliminarPorId = async (req, res) => {
-  let id = req.params.id;
-
-  try {
-    //Logica de buscar  mostrar el resultado
-    //let consulta = await producto.find(id).exec();
-    let consulta = await Usuarios.findOneAndDelete({ _id: id }).exec();
-
-    return res.send({
-      estado: true,
-      mensaje: `Eliminacion exitosa`,
-      consulta: consulta,
-    });
-  } catch (error) {
-    return res.send({
+    return {
       estado: false,
-      mensaje: `Error, no se pudo realizar la consulta`,
-    });
+      mensaje: `Error: ${error.message}`
+    };
   }
 };
 
-export default {
-  listarTodos,
-  nuevo,
-  buscarPorId,
-  actualizarPorId,
-  eliminarPorId,
-  buscarPorIdUser,
+export const eliminarPorId = async (data) => {
+  try {
+    const id = data.id;
+
+    const usuarioEliminado = await Usuarios.findByIdAndUpdate(id, { status: 0 });
+
+    return {
+      estado: true,
+      mensaje: "Usuario eliminado (estado desactivado)",
+      result: usuarioEliminado
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error: ${error.message}`
+    };
+  }
 };
