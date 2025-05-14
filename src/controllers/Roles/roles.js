@@ -6,12 +6,44 @@ const listarTodos = async (req, res) => {
     const listarRoles = await Roles.find().exec();
     res.status(200).send({
       exito: true,
-      listarRoles,
+      listarRoles
     });
   } catch (error) {
     res.status(500).send({
       exito: false,
-      mensaje: "Error en la consulta",
+      mensaje: "Error en la consulta"
+    });
+  }
+};
+
+const listarMedicos = async (req, res) => {
+  try {
+    // expresión regular :: comparación sin que importe mayúsculas/minúsculas
+    const listarRoles = await Roles.find({ nombreRol: /medico/i }).exec();
+    res.status(200).send({
+      exito: true,
+      listarRoles
+    });
+  } catch (error) {
+    res.status(500).send({
+      exito: false,
+      mensaje: "Error en la consulta"
+    });
+  }
+};
+
+const listarPaciente = async (req, res) => {
+  try {
+    // expresión regular :: comparación sin que importe mayúsculas/minúsculas
+    const listarRoles = await Roles.find({ nombreRol: /paciente/i }).exec();
+    res.status(200).send({
+      exito: true,
+      listarRoles
+    });
+  } catch (error) {
+    res.status(500).send({
+      exito: false,
+      mensaje: "Error en la consulta"
     });
   }
 };
@@ -19,7 +51,7 @@ const listarTodos = async (req, res) => {
 const nuevo = async (req, res) => {
   let datos = {
     nombreRol: req.body.nombreRol,
-    descripcionRol: req.body.descripcionRol,
+    descripcionRol: req.body.descripcionRol
   };
 
   try {
@@ -29,12 +61,12 @@ const nuevo = async (req, res) => {
 
     return res.send({
       estado: true,
-      mensaje: `Insercion exitosa`,
+      mensaje: `Insercion exitosa`
     });
   } catch (error) {
     return res.send({
       estado: false,
-      mensaje: `A ocurrido un error en la consulta ${error}`,
+      mensaje: `A ocurrido un error en la consulta ${error}`
     });
   }
 };
@@ -50,12 +82,12 @@ const buscarPorId = async (req, res) => {
     return res.send({
       estado: true,
       mensaje: `Busqueda exitosa`,
-      consulta: consulta,
+      consulta: consulta
     });
   } catch (error) {
     return res.send({
       estado: false,
-      mensaje: `Error, no se pudo realizar la consulta`,
+      mensaje: `Error, no se pudo realizar la consulta`
     });
   }
 };
@@ -66,7 +98,7 @@ const actualizarPorId = async (req, res) => {
 
   let datos = {
     nombreRol: req.body.nombreRol,
-    descripcionRol: req.body.descripcionRol,
+    descripcionRol: req.body.descripcionRol
   };
 
   try {
@@ -74,13 +106,13 @@ const actualizarPorId = async (req, res) => {
     return res.send({
       estado: true,
       mensaje: `Actualizacion exitosa`,
-      consulta: consulta,
+      consulta: consulta
     });
   } catch (error) {
     return res.send({
       estado: true,
       mensaje: `Error al actualizar`,
-      consulta: consulta,
+      consulta: consulta
     });
   }
 };
@@ -89,18 +121,17 @@ const eliminarPorId = async (req, res) => {
   let id = req.params.id;
 
   try {
-
     let consulta = await Roles.findOneAndDelete({ _id: id }).exec();
 
     return res.send({
       estado: true,
       mensaje: `Eliminacion exitosa`,
-      consulta: consulta,
+      consulta: consulta
     });
   } catch (error) {
     return res.send({
       estado: false,
-      mensaje: `Error, no se pudo realizar la consulta`,
+      mensaje: `Error, no se pudo realizar la consulta`
     });
   }
 };
@@ -109,6 +140,8 @@ export default {
   eliminarPorId,
   listarTodos,
   nuevo,
+  listarPaciente,
+  listarMedicos,
   actualizarPorId,
-  buscarPorId,
+  buscarPorId
 };

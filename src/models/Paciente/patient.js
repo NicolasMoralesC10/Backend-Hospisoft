@@ -8,6 +8,7 @@ const patientSchema = new Schema(
     },
     documento: {
       type: Number,
+      unique: true,
       required: true,
     },
     telefonoPaciente: {
