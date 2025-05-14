@@ -3,7 +3,6 @@ import Patient from "../../models/Paciente/patient.js";
 import bcrypt from "bcryptjs";
 import { Types } from "mongoose";
 
-
 export const listarTodos = async () => {
   try {
     const listaUsuarios = await Usuarios.find({ status: { $gt: 0 } });
@@ -20,6 +19,24 @@ export const listarTodos = async () => {
 };
 
 export const nuevo = async (data) => {
+  const userExist = await Usuarios.findOne({
+    $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
+  });
+
+  if (userExist) {
+    let mensaje = "El usuario ya existe en el sistema";
+    if (userExist.nombreUsuario === data.nombreUsuario) {
+      mensaje = "El nombre de usuario ya está registrado";
+    } else if (userExist.emailUser === data.emailUser) {
+      mensaje = "El correo electrónico ya está registrado";
+    }
+
+    return {
+      estado: false,
+      mensaje
+    };
+  }
+
   try {
     const { nombreUsuario, passwordUser, emailUser, rol } = data;
 
@@ -40,6 +57,59 @@ export const nuevo = async (data) => {
       estado: true,
       mensaje: "Usuario registrado exitosamente",
       id: nuevoUsuario._id
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error: ${error.message}`
+    };
+  }
+};
+
+export const actualizarPorId = async (data) => {
+  try {
+    const id = data.id;
+
+   
+    const existeOtro = await Usuarios.findOne({
+      _id: { $ne: id }, // Excluye al usuario que se está editando
+      $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
+    });
+
+    if (existeOtro) {
+      let mensaje = "Ya existe un usuario con ese nombre o correo.";
+      if (existeOtro.nombreUsuario === data.nombreUsuario) {
+        mensaje = "El nombre de usuario ya está en uso.";
+      } else if (existeOtro.emailUser === data.emailUser) {
+        mensaje = "El correo electrónico ya está en uso.";
+      }
+
+      return {
+        estado: false,
+        mensaje
+      };
+    }
+
+    
+    const datos = {
+      nombreUsuario: data.nombreUsuario,
+      emailUser: data.emailUser,
+      rol: data.rol,
+      status: data.status || 1
+    };
+
+  
+    if (data.passwordUser) {
+      const salt = await bcrypt.genSalt(10);
+      datos.passwordUser = await bcrypt.hash(data.passwordUser, salt);
+    }
+
+    const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, datos, { new: true });
+
+    return {
+      estado: true,
+      mensaje: "Actualización exitosa",
+      result: usuarioActualizado
     };
   } catch (error) {
     return {
@@ -79,33 +149,6 @@ export const buscarPorIdUser = async (data) => {
         ? "El usuario está relacionado con un paciente."
         : "El usuario no está relacionado con ningún paciente.",
       paciente: pacienteRelacionado || null
-    };
-  } catch (error) {
-    return {
-      estado: false,
-      mensaje: `Error: ${error.message}`
-    };
-  }
-};
-
-export const actualizarPorId = async (data) => {
-  try {
-    const id = data.id;
-
-    const datos = {
-      nombreUsuario: data.nombreUsuario,
-      passwordUser: data.passwordUser,
-      emailUser: data.emailUser,
-      rol: data.rol,
-      status: data.status || 1
-    };
-
-    const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, datos, { new: true });
-
-    return {
-      estado: true,
-      mensaje: "Actualización exitosa",
-      result: usuarioActualizado
     };
   } catch (error) {
     return {

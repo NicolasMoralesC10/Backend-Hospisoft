@@ -3,6 +3,7 @@ const usuarioSchema = new Schema(
   {
     nombreUsuario: {
       type: String,
+      unique: true,
       required: true
     },
     passwordUser: {
@@ -11,11 +12,12 @@ const usuarioSchema = new Schema(
     },
     emailUser: {
       type: String,
+      unique: true,
       required: true
     },
     rol: {
-      type: String,/*  Types.ObjectId, */ // Esto es para la foranea de roles
-      /* ref: "Roles", */
+      type: Types.ObjectId, // Esto es para la foranea de roles
+      ref: "Roles",
       required: false
     },
     status: {
