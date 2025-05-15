@@ -24,7 +24,8 @@ router.get("/user/list", async (req, res) => {
 // Ruta para buscar un usuario por su ID
 router.get("/user/:id", async (req, res) => {
   try {
-    const response = await buscarPorId(req, res);
+    const data = req.params.id;
+    const response = await buscarPorId({ id: data });
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -39,8 +40,8 @@ router.post(
       nombreUsuario: Joi.string().min(3).required(), // Aseguramos que el nombre sea una cadena y tenga al menos 3 caracteres
       passwordUser: Joi.string().min(6).required(), // La contraseña debe tener al menos 6 caracteres
       emailUser: Joi.string().email().required(), // El email debe ser válido
-      rol: Joi.string().hex().length(24).required(), // El rol debe ser 'admin' o 'user'
-     /*  pacienteId: Joi.string().hex().length(24).required() */ // ID del paciente, que debe ser un ObjectId
+      rol: Joi.string().hex().length(24).required() // El rol debe ser 'admin' o 'user'
+      /*  pacienteId: Joi.string().hex().length(24).required() */ // ID del paciente, que debe ser un ObjectId
     })
   }),
   async (req, res) => {

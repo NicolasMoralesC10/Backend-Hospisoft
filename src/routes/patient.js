@@ -8,7 +8,7 @@ import {
   searchById,
   subirImagen,
   deleteById,
-  avatar,
+  avatar
 } from "../controllers/Paciente/patient.js";
 
 import { celebrate, Joi, errors, Segments } from "celebrate";
@@ -18,7 +18,7 @@ router.get("/patient/list", async (req, res) => {
     const response = await getAll();
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener la lista de pacientes" });
+    res.status(500).json({ message: error.message });
   }
 });
 router.get("/patient/img/", async (req, res) => {
@@ -26,7 +26,7 @@ router.get("/patient/img/", async (req, res) => {
     const response = await avatar();
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener la imagen" });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -36,10 +36,9 @@ router.get("/patient/:id", async (req, res) => {
     const response = await searchById({ id: data });
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener la información" });
+    res.status(500).json({ message: error.message });
   }
 });
-
 
 router.post(
   "/patient/create",
@@ -47,14 +46,14 @@ router.post(
     body: Joi.object({
       nombre: Joi.string().required(),
       nacimiento: Joi.date().required(),
-      documento: Joi.number().required(),
-      telefono: Joi.number().required(),
+      documento: Joi.number().min(1000000).max(9999999999).required(),
+      telefono: Joi.number().min(1000000000).max(9999999999).required(),
       eps: Joi.string().required(),
       idUsuario: Joi.string().hex().length(24).required(),
       estadoCivil: Joi.string().required(),
       sexo: Joi.string().required(),
-      direccion: Joi.string().required(),
-    }),
+      direccion: Joi.string().required()
+    })
   }),
   async (req, res) => {
     try {
@@ -62,7 +61,7 @@ router.post(
       const response = await add(data);
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Error al Registrar el Paciente" });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -72,15 +71,15 @@ router.post(
   celebrate({
     body: Joi.object({
       id: Joi.string().required(),
-      nombre: Joi.string().required(),
-      nacimiento: Joi.date().required(),
-      documento: Joi.number().required(),
-      eps: Joi.string().required(),
-      telefono: Joi.number().required(),
-      estadoCivil: Joi.string().required(),
-      sexo: Joi.string().required(),
-      direccion: Joi.string().required(),
-    }),
+      nombre: Joi.string().optional(),
+      nacimiento: Joi.date().optional(),
+      documento: Joi.number().min(1000000).max(9999999999).optional(),
+      eps: Joi.string().optional(),
+      telefono: Joi.number().min(1000000000).max(9999999999).optional(),
+      estadoCivil: Joi.string().optional(),
+      sexo: Joi.string().optional(),
+      direccion: Joi.string().optional()
+    })
   }),
   async (req, res) => {
     try {
@@ -88,7 +87,7 @@ router.post(
       const response = await updatePatient(data);
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Error al actualizar" });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -97,8 +96,8 @@ router.post(
   "/patient/delet",
   celebrate({
     body: Joi.object({
-      id: Joi.string().required(),
-    }),
+      id: Joi.string().required()
+    })
   }),
   async (req, res) => {
     try {
@@ -106,7 +105,7 @@ router.post(
       const response = await deleteById(data);
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ message: "Error al eliminar" });
+      res.status(500).json({ message: error.message });
     }
   }
 );

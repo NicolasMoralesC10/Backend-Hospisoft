@@ -5,26 +5,12 @@ import { Types } from "mongoose";
 export const getAll = async () => {
   try {
     let listaPacientes = await Patients.find({ status: { $gt: 0 } })
-      .populate("idUsuario") // Con esto relaciona el campo y segunel id, trae los datos del usuario
+      .populate("idUsuario") // Esto ya te trae los datos del usuario
       .exec();
-
-    // Ahora, por cada paciente, buscamos el usuario relacionado
-    const pacientesConUsuario = await Promise.all(
-      listaPacientes.map(async (paciente) => {
-        // Buscar el usuario relacionado por el campo idUsuario
-        const usuario = await Usuarios.findById(paciente.idUsuario).exec();
-
-        // Devolver el paciente con su usuario relacionado
-        return {
-          ...paciente.toObject(),
-          usuario: usuario || null // Si no se encuentra el usuario, dejamos null
-        };
-      })
-    );
 
     return {
       estado: true,
-      data: pacientesConUsuario
+      data: listaPacientes // Los pacientes ya tienen el usuario poblado
     };
   } catch (error) {
     return {
@@ -97,7 +83,7 @@ export const updatePatient = async (data) => {
 export const searchById = async (data) => {
   let id = data.id;
   try {
-    let result = await Patients.findById(id).populate("idUsuario").exec();
+    let result = await Patients.findById(id);
 
     return {
       estado: true,

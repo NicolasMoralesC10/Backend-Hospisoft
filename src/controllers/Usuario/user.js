@@ -70,7 +70,6 @@ export const actualizarPorId = async (data) => {
   try {
     const id = data.id;
 
-   
     const existeOtro = await Usuarios.findOne({
       _id: { $ne: id }, // Excluye al usuario que se está editando
       $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
@@ -90,7 +89,6 @@ export const actualizarPorId = async (data) => {
       };
     }
 
-    
     const datos = {
       nombreUsuario: data.nombreUsuario,
       emailUser: data.emailUser,
@@ -98,7 +96,6 @@ export const actualizarPorId = async (data) => {
       status: data.status || 1
     };
 
-  
     if (data.passwordUser) {
       const salt = await bcrypt.genSalt(10);
       datos.passwordUser = await bcrypt.hash(data.passwordUser, salt);
@@ -120,8 +117,8 @@ export const actualizarPorId = async (data) => {
 };
 
 export const buscarPorId = async (data) => {
+  const id = data.id;
   try {
-    const id = data.id;
     const usuario = await Usuarios.findById(id);
 
     return {
