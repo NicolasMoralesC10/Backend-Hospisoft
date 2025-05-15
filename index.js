@@ -1,10 +1,9 @@
 import express from "express";
 import cors from "cors";
-import { errors } from "celebrate";
-import { errorHandler } from "./src/middleware/errorHandler.js";
 import { cnx } from "./src/models/db/connection.js";
 import medicamentos from "./src/routes/medicamentos.js";
 import patient from "./src/routes/patient.js";
+import medico from "./src/routes/medico.js";
 import usuarioRuta from "./src/routes/user.js";
 import rolesRuta from "./src/routes/roles.js";
 
@@ -14,12 +13,10 @@ app.use(cors());
 
 // rutas
 app.use("/api", medicamentos);
+app.use("/api", medico);
 app.use("/api", patient);
 app.use("/api", usuarioRuta);
 app.use("/api", rolesRuta);
-
-app.use(errors());
-app.use(errorHandler);
 
 const initServe = async () => {
   await cnx();
