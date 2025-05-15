@@ -1,67 +1,69 @@
-import Usuarios from "../../models/Usuario/user.js";
-import Patient from "../../models/Paciente/patient.js";
+import Usuarios from "../../models/User/user.js";
+import Medico from "../../models/Medico/medico.js";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Types } from "mongoose";
 
-export const listarTodos = async () => {
+export const listarTodos = async (req, res) => {
   try {
-    const listaUsuarios = await Usuarios.find({ status: { $gt: 0 } });
-    return {
+    // Consultar todos sin filtro
+    const listaUsuarios = await Usuarios.find({ status: { $gt: 0 } }).exec();
+    res.status(200).send({
       estado: true,
-      data: listaUsuarios
-    };
+      data: listaUsuarios,
+    });
   } catch (error) {
-    return {
+    res.status(500).send({
       estado: false,
-      mensaje: `Error: ${error.message}`
-    };
+      mensaje: `Error: ${error.message}`,
+    });
   }
 };
 
 export const nuevo = async (data) => {
   const userExist = await Usuarios.findOne({
-    $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
+    $or: [{ username: data.username }, { email: data.email }],
   });
 
   if (userExist) {
     let mensaje = "El usuario ya existe en el sistema";
-    if (userExist.nombreUsuario === data.nombreUsuario) {
+    if (userExist.username === data.username) {
       mensaje = "El nombre de usuario ya está registrado";
-    } else if (userExist.emailUser === data.emailUser) {
+    } else if (userExist.email === data.email) {
       mensaje = "El correo electrónico ya está registrado";
     }
 
     return {
       estado: false,
-      mensaje
+      mensaje,
     };
   }
 
   try {
-    const { nombreUsuario, passwordUser, emailUser, rol } = data;
+    const { username, password, email, rol } = data;
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(passwordUser, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    const nuevoUsuario = new Usuarios({
-      nombreUsuario,
-      passwordUser: hashedPassword,
-      emailUser,
+    const newUser = new Usuarios({
+      username,
+      password: hashedPassword,
+      email,
       rol,
-      status: 1
+      status: 1,
     });
 
-    await nuevoUsuario.save();
+    await newUser.save();
 
     return {
       estado: true,
       mensaje: "Usuario registrado exitosamente",
-      id: nuevoUsuario._id
+      data: newUser,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`
+      mensaje: `Error en la consulta: ${error.message}`,
     };
   }
 };
@@ -72,47 +74,49 @@ export const actualizarPorId = async (data) => {
 
     const existeOtro = await Usuarios.findOne({
       _id: { $ne: id }, // Excluye al usuario que se está editando
-      $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
+      $or: [{ username: data.username }, { email: data.email }],
     });
 
     if (existeOtro) {
       let mensaje = "Ya existe un usuario con ese nombre o correo.";
-      if (existeOtro.nombreUsuario === data.nombreUsuario) {
+      if (existeOtro.username === data.username) {
         mensaje = "El nombre de usuario ya está en uso.";
-      } else if (existeOtro.emailUser === data.emailUser) {
+      } else if (existeOtro.email === data.email) {
         mensaje = "El correo electrónico ya está en uso.";
       }
 
       return {
         estado: false,
-        mensaje
+        mensaje,
       };
     }
 
     const datos = {
-      nombreUsuario: data.nombreUsuario,
-      emailUser: data.emailUser,
+      username: data.username,
+      email: data.email,
       rol: data.rol,
-      status: data.status || 1
+      status: data.status || 1,
     };
 
-    if (data.passwordUser) {
+    if (data.password) {
       const salt = await bcrypt.genSalt(10);
-      datos.passwordUser = await bcrypt.hash(data.passwordUser, salt);
+      datos.password = await bcrypt.hash(data.password, salt);
     }
 
-    const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, datos, { new: true });
+    const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, datos, {
+      new: true,
+    });
 
     return {
       estado: true,
       mensaje: "Actualización exitosa",
       result: usuarioActualizado,
-      id: id
+      id: id,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`
+      mensaje: `Error: ${error.message}`,
     };
   }
 };
@@ -125,12 +129,35 @@ export const buscarPorId = async (data) => {
     return {
       estado: true,
       mensaje: "Consulta exitosa",
-      result: usuario
+      result: usuario,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`
+      mensaje: `Error: ${error.message}`,
+    };
+  }
+};
+
+export const buscarMedicoPorIdUser = async (data) => {
+  try {
+    const usuarioId = new Types.ObjectId(data.id);
+    const medicoRelacionado = await Medico.findOne({
+      idUsuario: usuarioId,
+    }).exec();
+
+    return {
+      estado: true,
+      relacionado: !!medicoRelacionado,
+      mensaje: medicoRelacionado
+        ? "El usuario está relacionado con un medico."
+        : "El usuario no está relacionado con ningún medico.",
+      medico: medicoRelacionado || null,
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error: ${error.message}`,
     };
   }
 };
@@ -146,12 +173,12 @@ export const buscarPorIdUser = async (data) => {
       mensaje: pacienteRelacionado
         ? "El usuario está relacionado con un paciente."
         : "El usuario no está relacionado con ningún paciente.",
-      paciente: pacienteRelacionado || null
+      paciente: pacienteRelacionado || null,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`
+      mensaje: `Error: ${error.message}`,
     };
   }
 };
@@ -160,17 +187,19 @@ export const eliminarPorId = async (data) => {
   try {
     const id = data.id;
 
-    const usuarioEliminado = await Usuarios.findByIdAndUpdate(id, { status: 0 });
+    const usuarioEliminado = await Usuarios.findByIdAndUpdate(id, {
+      status: 0,
+    });
 
     return {
       estado: true,
       mensaje: "Usuario eliminado (estado desactivado)",
-      result: usuarioEliminado
+      result: usuarioEliminado,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`
+      mensaje: `Error: ${error.message}`,
     };
   }
 };

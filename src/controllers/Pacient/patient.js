@@ -1,5 +1,4 @@
-import Patients from "../../models/Paciente/patient.js";
-import Usuarios from "../../models/Usuario/user.js";
+import Patients from "../../models/patient/patient.js";
 import { Types } from "mongoose";
 
 export const getAll = async () => {

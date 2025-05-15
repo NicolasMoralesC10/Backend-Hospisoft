@@ -1,4 +1,4 @@
-import Roles from "../../models/Roles/roles.js";
+import Roles from "../../models/Role/role.js";
 
 const listarTodos = async (req, res) => {
   try {

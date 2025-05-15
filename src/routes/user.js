@@ -1,13 +1,13 @@
 import express from "express";
-import { celebrate, Joi, Segments } from "celebrate";
+import { celebrate, errors, Joi, Segments } from "celebrate";
 import {
   listarTodos,
   nuevo,
   buscarPorId,
   actualizarPorId,
   eliminarPorId,
-  buscarPorIdUser
-} from "../controllers/Usuario/user.js";
+  buscarMedicoPorIdUser,
+} from "../controllers/User/user.js";
 
 const router = express.Router();
 
@@ -37,12 +37,12 @@ router.post(
   "/user/create",
   celebrate({
     body: Joi.object({
-      nombreUsuario: Joi.string().min(3).required(), // Aseguramos que el nombre sea una cadena y tenga al menos 3 caracteres
-      passwordUser: Joi.string().min(6).required(), // La contraseña debe tener al menos 6 caracteres
-      emailUser: Joi.string().email().required(), // El email debe ser válido
-      rol: Joi.string().hex().length(24).required() // El rol debe ser 'admin' o 'user'
+      username: Joi.string().min(3).required(), // Aseguramos que el nombre sea una cadena y tenga al menos 3 caracteres
+      password: Joi.string().min(5).required(), // La contraseña debe tener al menos 6 caracteres
+      email: Joi.string().email().required(), // El email debe ser válido
+      rol: Joi.string().hex().length(24).required(), // El rol debe ser 'admin' o 'user'
       /*  pacienteId: Joi.string().hex().length(24).required() */ // ID del paciente, que debe ser un ObjectId
-    })
+    }),
   }),
   async (req, res) => {
     try {
@@ -61,11 +61,11 @@ router.put(
   celebrate({
     body: Joi.object({
       id: Joi.string().hex().length(24).required(), // ID del usuario (debe ser un ObjectId)
-      nombreUsuario: Joi.string().min(3).required(), // El nombre debe tener al menos 3 caracteres
-      passwordUser: Joi.string().min(6).optional(), // Contraseña opcional (si se desea actualizar)
-      emailUser: Joi.string().email().required(), // El email debe ser válido
-      rol: Joi.string().hex().length(24).required() // Rol debe ser uno de los definidos
-    })
+      username: Joi.string().min(3).required(), // El nombre debe tener al menos 3 caracteres
+      password: Joi.string().min(5).optional(), // Contraseña opcional (si se desea actualizar)
+      email: Joi.string().email().required(), // El email debe ser válido
+      rol: Joi.string().hex().length(24).required(), // Rol debe ser uno de los definidos
+    }),
   }),
   async (req, res) => {
     try {
@@ -79,12 +79,12 @@ router.put(
 );
 
 // Ruta para eliminar un usuario por ID
-router.post(
+router.put(
   "/user/delete",
   celebrate({
     body: Joi.object({
-      id: Joi.string().hex().length(24).required() // ID del usuario (debe ser un ObjectId)
-    })
+      id: Joi.string().hex().length(24).required(), // ID del usuario (debe ser un ObjectId)
+    }),
   }),
   async (req, res) => {
     try {
@@ -101,7 +101,7 @@ router.post(
 router.get("/user/:id/related", async (req, res) => {
   try {
     const { id } = req.params;
-    const response = await buscarPorIdUser(req, res);
+    const response = await buscarMedicoPorIdUser(req, res);
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: error.message });
