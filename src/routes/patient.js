@@ -66,7 +66,7 @@ router.post(
   }
 );
 
-router.post(
+router.put(
   "/patient/update",
   celebrate({
     body: Joi.object({

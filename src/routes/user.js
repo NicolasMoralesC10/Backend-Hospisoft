@@ -56,7 +56,7 @@ router.post(
 );
 
 // Ruta para actualizar un usuario existente
-router.post(
+router.put(
   "/user/update",
   celebrate({
     body: Joi.object({
