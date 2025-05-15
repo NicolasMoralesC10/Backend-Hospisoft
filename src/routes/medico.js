@@ -45,9 +45,9 @@ router.post(
   "/medico/create",
   celebrate({
     body: Joi.object({
-      nombre: Joi.string().required(),
-      documento: Joi.number().required(),
-      telefono: Joi.number().required(),
+      nombre: Joi.string().min(3).required(),
+      documento: Joi.number().min(6).required(),
+      telefono: Joi.number().min(6).required(),
       especialidad: Joi.string().required(),
       idUsuario: Joi.string().hex().length(24).required(),
     }),
@@ -67,10 +67,10 @@ router.put(
   "/medico/update",
   celebrate({
     body: Joi.object({
-      id: Joi.string().required(),
-      nombre: Joi.string().required(),
-      documento: Joi.number().required(),
-      telefono: Joi.number().required(),
+      id: Joi.string().hex().length(24).required(),
+      nombre: Joi.string().min(3).required(),
+      documento: Joi.number().min(6).required(),
+      telefono: Joi.number().min(6).required(),
       especialidad: Joi.string().required(),
     }),
   }),

@@ -3,6 +3,7 @@ const usuarioSchema = new Schema(
   {
     username: {
       type: String,
+      unique: true,
       required: true,
     },
     password: {
@@ -11,6 +12,7 @@ const usuarioSchema = new Schema(
     },
     email: {
       type: String,
+      unique: true,
       required: true,
     },
     rol: {
