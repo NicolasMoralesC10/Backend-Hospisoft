@@ -19,11 +19,26 @@ export const getAll = async () => {
 };
 
 export const add = async (data) => {
-  const medicoExist = await Medicos.findOne({ documento: data.documento });
+  const medicoExist = await Medicos.findOne({
+    $and: [
+      { $or: [{ documento: data.documento }, { telefono: data.telefono }] },
+      { status: { $ne: 0 } },
+    ],
+  });
+
   if (medicoExist) {
+    let mensaje = "El medico ya existe en el sistema";
+    if (medicoExist.documento === data.documento && medicoExist.telefono === data.telefono) {
+      mensaje = "Nombre de documento y telefono ya registrados.";
+    } else if (medicoExist.documento === data.documento) {
+      mensaje = "Nombre de documento ya registrado.";
+    } else if (medicoExist.telefono === data.telefono) {
+      mensaje = "Numero de telefono ya registrado.";
+    }
+
     return {
       estado: false,
-      mensaje: "El medico ya existe en el sistema.",
+      mensaje,
     };
   }
 
@@ -50,7 +65,30 @@ export const add = async (data) => {
 };
 
 export const updateMedico = async (data) => {
-  let id = data.id;
+  const id = data.id;
+
+  const existeOtro = await Medicos.findOne({
+    _id: { $ne: id }, // Excluye al medico que se está editando
+    $or: [{ documento: data.documento }, { telefono: data.telefono }],
+    status: { $ne: 0 }, // Solo médicos activos
+  });
+
+  if (existeOtro) {
+    let mensaje = "Ya existe un medico con ese documento o teléfono.";
+    if (existeOtro.documento === data.documento && existeOtro.telefono === data.telefono) {
+      mensaje = "Numero de documento y teléfono ya registrados.";
+    } else if (existeOtro.documento === data.documento) {
+      mensaje = "Numero de documento ya registrado.";
+    } else if (existeOtro.telefono === data.telefono) {
+      mensaje = "Numero de teléfono ya registrado.";
+    }
+
+    return {
+      estado: false,
+      mensaje,
+    };
+  }
+
   let info = {
     nombre: data.nombre,
     documento: data.documento,
@@ -61,7 +99,7 @@ export const updateMedico = async (data) => {
     let medicoUpdate = await Medicos.findByIdAndUpdate(id, info);
     return {
       estado: true,
-      mensaje: "Actualizacion exitosa!",
+      mensaje: "!Actualizacion exitosa!",
       result: medicoUpdate,
     };
   } catch (error) {

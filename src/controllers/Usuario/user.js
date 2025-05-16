@@ -6,7 +6,6 @@ import { Types } from "mongoose";
 
 export const listarTodos = async (req, res) => {
   try {
-    // Consultar todos sin filtro
     const listaUsuarios = await Usuarios.find({ status: { $gt: 0 } }).exec();
     res.status(200).send({
       estado: true,
@@ -20,43 +19,19 @@ export const listarTodos = async (req, res) => {
   }
 };
 
-/* export const nuevo = async (req, res) => {
-  let datos = {
-    username: req.body.username,
-    password: req.body.password,
-    email: req.body.email,
-    rol: req.body.rol,
-    status: req.body.status || 1,
-  };
-
-  try {
-    const usuarioNuevo = new Usuarios(datos);
-    await usuarioNuevo.save();
-
-    return res.send({
-      estado: true,
-      mensaje: "Inserción exitosa",
-      data: usuarioNuevo,
-    });
-  } catch (error) {
-    return res.send({
-      estado: false,
-      mensaje: `Ha ocurrido un error en la consulta: ${error}`,
-    });
-  }
-}; */
-
 export const nuevo = async (data) => {
   const userExist = await Usuarios.findOne({
-    $or: [{ username: data.username }, { email: data.email }],
+    $and: [{ $or: [{ username: data.username }, { email: data.email }] }, { status: { $ne: 0 } }],
   });
 
   if (userExist) {
     let mensaje = "El usuario ya existe en el sistema";
-    if (userExist.username === data.username) {
-      mensaje = "El nombre de usuario ya está registrado";
+    if (userExist.username === data.username && userExist.email === data.email) {
+      mensaje = "Nombre de usuario y correo electronico ya registrados";
+    } else if (userExist.username === data.username) {
+      mensaje = "Nombre de usuario ya registrado";
     } else if (userExist.email === data.email) {
-      mensaje = "El correo electrónico ya está registrado";
+      mensaje = "Correo electrónico ya registrado";
     }
 
     return {
@@ -100,12 +75,15 @@ export const actualizarPorId = async (data) => {
 
     const existeOtro = await Usuarios.findOne({
       _id: { $ne: id }, // Excluye al usuario que se está editando
+      status: { $ne: 0 },
       $or: [{ username: data.username }, { email: data.email }],
     });
 
     if (existeOtro) {
       let mensaje = "Ya existe un usuario con ese nombre o correo.";
-      if (existeOtro.username === data.username) {
+      if (existeOtro.username === data.username && existeOtro.email === data.email) {
+        mensaje = "El nombre de usuario y correo electronico ya están en uso.";
+      } else if (existeOtro.username === data.username) {
         mensaje = "El nombre de usuario ya está en uso.";
       } else if (existeOtro.email === data.email) {
         mensaje = "El correo electrónico ya está en uso.";
@@ -198,6 +176,25 @@ export const eliminarPorId = async (data) => {
     return {
       estado: true,
       mensaje: "Usuario eliminado (estado desactivado)",
+      result: usuarioEliminado,
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error: ${error.message}`,
+    };
+  }
+};
+
+export const rollback = async (data) => {
+  try {
+    const id = data.id;
+
+    const usuarioEliminado = await Usuarios.findByIdAndDelete(id);
+
+    return {
+      estado: true,
+      mensaje: "Usuario eliminado (rollback)",
       result: usuarioEliminado,
     };
   } catch (error) {

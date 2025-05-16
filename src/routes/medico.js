@@ -1,6 +1,7 @@
 import express, { json } from "express";
-
+import { celebrate, Joi, Segments } from "celebrate";
 const router = express.Router();
+
 import {
   getAll,
   add,
@@ -10,8 +11,6 @@ import {
   deleteById,
   avatar,
 } from "../controllers/Medico/medico.js";
-
-import { celebrate, Joi, errors, Segments } from "celebrate";
 
 router.get("/medico/list", async (req, res) => {
   try {
@@ -31,7 +30,7 @@ router.get("/medico/img/", async (req, res) => {
   }
 });
 
-router.get("/medico/:id", async (req, res) => {
+router.get("/medico/search/:id", async (req, res) => {
   try {
     const data = req.params.id;
     const response = await searchById({ id: data });
@@ -85,7 +84,7 @@ router.put(
   }
 );
 
-router.post(
+router.put(
   "/medico/delete",
   celebrate({
     body: Joi.object({
