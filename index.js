@@ -8,6 +8,7 @@ import patient from "./src/routes/patient.js";
 import medico from "./src/routes/medico.js";
 import usuarioRuta from "./src/routes/user.js";
 import rolesRuta from "./src/routes/roles.js";
+import cita from "./src/routes/cita.js";
 
 const app = express();
 app.use(express.json());
@@ -19,6 +20,7 @@ app.use("/api", medico);
 app.use("/api", patient);
 app.use("/api", usuarioRuta);
 app.use("/api", rolesRuta);
+app.use("/api", cita);
 
 app.use(errors());
 app.use(errorHandler);

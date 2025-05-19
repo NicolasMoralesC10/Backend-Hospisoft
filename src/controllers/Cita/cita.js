@@ -1,14 +1,28 @@
-import Medicos from "../../models/Medico/medico.js";
+import Cita from "../../models/Cita/cita.js";
 import { Types } from "mongoose";
 
 export const getAll = async () => {
   try {
-    let listaMedicos = await Medicos.find({ status: { $gt: 0 } })
-      .populate("idUsuario") // Esto relaciona el campo y segun el id, trae los datos del usuario
+    let allCitas = await Cita.find({ status: 1 })
+      .populate("idPaciente")
+      .populate("idMedico")
       .exec();
+
+    // Mapeo para adaptar al formato de FullCalendar
+    const eventos = allCitas.map((cita) => ({
+      id: cita._id,
+      title: cita.descripcion,
+      start: cita.fecha.toISOString(),
+      extendedProps: {
+        paciente: cita.idPaciente,
+        medico: cita.idMedico,
+        status: cita.status,
+      },
+    }));
+
     return {
       estado: true,
-      data: listaMedicos,
+      data: eventos,
     };
   } catch (error) {
     return {
@@ -20,59 +34,49 @@ export const getAll = async () => {
 
 export const add = async (data) => {
   try {
-    const medicoExist = await Medicos.findOne({
-      $or: [{ documento: data.documento }, { telefono: data.telefono }],
-      status: { $ne: 0 },
+    // Validar que no exista una cita activa para el mismo médico y paciente en la misma fecha
+    const citaExist = await Cita.findOne({
+      idMedico: new Types.ObjectId(data.idMedico),
+      idPaciente: new Types.ObjectId(data.idPaciente),
+      fecha: new Date(data.fecha),
+      status: 1,
     });
 
-    if (medicoExist) {
-      let mensaje = "El médico ya existe en el sistema";
-      if (medicoExist.documento === data.documento && medicoExist.telefono === data.telefono) {
-        mensaje = "Documento y teléfono ya registrados";
-      } else if (medicoExist.documento === data.documento) {
-        mensaje = "Documento ya registrado";
-      } else if (medicoExist.telefono === data.telefono) {
-        mensaje = "Teléfono ya registrado";
-      }
-
+    if (citaExist) {
       return {
         estado: false,
-        mensaje,
+        mensaje: "Ya existe una cita activa para este médico y paciente en la fecha indicada",
         statusCode: 409,
         tipoError: "duplicado",
-        campoDuplicado:
-          medicoExist.documento === data.documento
-            ? medicoExist.telefono === data.telefono
-              ? ["documento", "telefono"]
-              : ["documento"]
-            : ["telefono"],
       };
     }
 
-    const medicoNuevo = await Medicos.create({
-      nombre: data.nombre,
-      documento: data.documento,
-      telefono: data.telefono,
-      especialidad: data.especialidad,
-      idUsuario: new Types.ObjectId(data.idUsuario),
+    // Crear la nueva cita
+    const citaNueva = await Cita.create({
+      fecha: new Date(data.fecha),
+      descripcion: data.descripcion,
+      idPaciente: new Types.ObjectId(data.idPaciente),
+      idMedico: new Types.ObjectId(data.idMedico),
       status: 1,
     });
 
     return {
       estado: true,
-      mensaje: "Médico registrado exitosamente",
-      data: medicoNuevo,
+      mensaje: "Cita agendada correctamente",
+      data: citaNueva,
       statusCode: 201,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error en el registro: ${error.message}`,
+      mensaje: `Error en el registro de la cita: ${error.message}`,
       statusCode: 500,
       error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     };
   }
 };
+
+/* ---------------------------------------------------- */
 
 export const updateMedico = async (data) => {
   try {
@@ -174,47 +178,6 @@ export const deleteById = async (data) => {
       estado: false,
       mensaje: `Error: ${error}`,
     };
-  }
-};
-
-export const subirImagen = async (req, res) => {
-  try {
-    // Validar si se subió un archivo
-    if (!req.file) {
-      return res.status(400).json({
-        estado: false,
-        mensaje: "No se ha subido ninguna imagen",
-      });
-    }
-
-    const { originalname, filename, path } = req.file;
-    const extension = originalname.split(".").pop().toLowerCase();
-    // Validar extensión de la imagen
-    const extensionesValidas = ["png", "jpg", "jpeg", "gif"];
-    if (!extensionesValidas.includes(extension)) {
-      await unlink(path); // Eliminar archivo inválido
-      return res.status(400).json({
-        estado: false,
-        mensaje: "Extensión de archivo no permitida",
-      });
-    }
-
-    // Actualizar usuario con la imagen subida
-    const usuarioActualizado = await _findByIdAndUpdate(req.body.id, {
-      imagen: filename,
-    });
-
-    return res.status(200).json({
-      estado: true,
-      user: usuarioActualizado,
-      //file: req.file,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      estado: false,
-      nensaje: "Error al procesar la imagen",
-      error: error.message,
-    });
   }
 };
 

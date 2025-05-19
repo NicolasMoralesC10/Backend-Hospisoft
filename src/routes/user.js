@@ -79,7 +79,7 @@ router.put(
   }
 );
 
-// Ruta para desactivar un usuario, status = 0,
+// Ruta para cambiar status, status = 0,
 router.put(
   "/user/delete",
   celebrate({

@@ -27,7 +27,7 @@ const patientSchema = new Schema(
       type: Types.ObjectId, // Esto es para la foránea de Usuarios
       ref: "Usuario",
       required: true,
-    } ,
+    },
     estadoCivil: {
       type: String,
       required: true,
