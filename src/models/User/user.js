@@ -4,26 +4,26 @@ const usuarioSchema = new Schema(
     username: {
       type: String,
       unique: true,
-      required: true
+      required: true,
     },
     password: {
       type: String,
-      required: true
+      required: true,
     },
     email: {
       type: String,
       unique: true,
-      required: true
+      required: true,
     },
     rol: {
       type: Types.ObjectId, // Esto es para la foranea de roles
       ref: "Roles",
-      required: false
+      required: true,
     },
     status: {
       type: Number,
-      required: true
-    }
+      required: true,
+    },
   },
   { collection: "users" }
 );

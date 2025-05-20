@@ -1,13 +1,13 @@
 import express from "express";
-import { celebrate, Joi, Segments } from "celebrate";
+import { celebrate, errors, Joi, Segments } from "celebrate";
 import {
   listarTodos,
   create,
   buscarPorId,
   update,
   eliminarPorId,
-  buscarPorIdUser
-} from "../controllers/Usuario/user.js";
+  buscarMedicoPorIdUser,
+} from "../controllers/User/user.js";
 
 const router = express.Router();
 
@@ -42,7 +42,7 @@ router.post(
       email: Joi.string().email().required(), // El email debe ser válido
       rol: Joi.string().hex().length(24).required() // El rol debe ser 'admin' o 'user'
       /*  pacienteId: Joi.string().hex().length(24).required() */ // ID del paciente, que debe ser un ObjectId
-    })
+    }),
   }),
   async (req, res) => {
     try {
@@ -79,12 +79,12 @@ router.put(
 );
 
 // Ruta para eliminar un usuario por ID
-router.post(
+router.put(
   "/user/delete",
   celebrate({
     body: Joi.object({
-      id: Joi.string().hex().length(24).required() // ID del usuario (debe ser un ObjectId)
-    })
+      id: Joi.string().hex().length(24).required(), // ID del usuario (debe ser un ObjectId)
+    }),
   }),
   async (req, res) => {
     try {
@@ -101,7 +101,7 @@ router.post(
 router.get("/user/:id/related", async (req, res) => {
   try {
     const { id } = req.params;
-    const response = await buscarPorIdUser(req, res);
+    const response = await buscarMedicoPorIdUser(req, res);
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: error.message });

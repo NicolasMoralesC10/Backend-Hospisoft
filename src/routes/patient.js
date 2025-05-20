@@ -9,7 +9,7 @@ import {
   subirImagen,
   deleteById,
   avatar
-} from "../controllers/Paciente/patient.js";
+} from "../controllers/Pacient/patient.js";
 
 import { celebrate, Joi, errors, Segments } from "celebrate";
 
@@ -92,7 +92,7 @@ router.put(
   }
 );
 
-router.post(
+router.put(
   "/patient/delet",
   celebrate({
     body: Joi.object({
