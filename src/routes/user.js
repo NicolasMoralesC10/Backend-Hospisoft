@@ -2,9 +2,9 @@ import express from "express";
 import { celebrate, Joi, Segments } from "celebrate";
 import {
   listarTodos,
-  nuevo,
+  create,
   buscarPorId,
-  actualizarPorId,
+  update,
   eliminarPorId,
   buscarPorIdUser
 } from "../controllers/Usuario/user.js";
@@ -37,9 +37,9 @@ router.post(
   "/user/create",
   celebrate({
     body: Joi.object({
-      nombreUsuario: Joi.string().min(3).required(), // Aseguramos que el nombre sea una cadena y tenga al menos 3 caracteres
-      passwordUser: Joi.string().min(6).required(), // La contraseña debe tener al menos 6 caracteres
-      emailUser: Joi.string().email().required(), // El email debe ser válido
+      username: Joi.string().min(3).required(), // Aseguramos que el nombre sea una cadena y tenga al menos 3 caracteres
+      password: Joi.string().min(6).required(), // La contraseña debe tener al menos 6 caracteres
+      email: Joi.string().email().required(), // El email debe ser válido
       rol: Joi.string().hex().length(24).required() // El rol debe ser 'admin' o 'user'
       /*  pacienteId: Joi.string().hex().length(24).required() */ // ID del paciente, que debe ser un ObjectId
     })
@@ -47,7 +47,7 @@ router.post(
   async (req, res) => {
     try {
       const { body: data } = req;
-      const response = await nuevo(data); // Llamamos la función que guarda el nuevo usuario
+      const response = await create(data); // Llamamos la función que guarda el nuevo usuario
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ message: error.message }); // En caso de error, respondemos con el mensaje de error
@@ -56,21 +56,21 @@ router.post(
 );
 
 // Ruta para actualizar un usuario existente
-router.post(
+router.put(
   "/user/update",
   celebrate({
     body: Joi.object({
       id: Joi.string().hex().length(24).required(), // ID del usuario (debe ser un ObjectId)
-      nombreUsuario: Joi.string().min(3).required(), // El nombre debe tener al menos 3 caracteres
-      passwordUser: Joi.string().min(6).optional(), // Contraseña opcional (si se desea actualizar)
-      emailUser: Joi.string().email().required(), // El email debe ser válido
+      username: Joi.string().min(3).required(), // El nombre debe tener al menos 3 caracteres
+      password: Joi.string().min(6).optional(), // Contraseña opcional (si se desea actualizar)
+      email: Joi.string().email().required(), // El email debe ser válido
       rol: Joi.string().hex().length(24).required() // Rol debe ser uno de los definidos
     })
   }),
   async (req, res) => {
     try {
       const { body: data } = req;
-      const response = await actualizarPorId(data); // Llamamos la función para actualizar el usuario
+      const response = await update(data); // Llamamos la función para actualizar el usuario
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ message: error.message });

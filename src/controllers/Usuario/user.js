@@ -18,16 +18,16 @@ export const listarTodos = async () => {
   }
 };
 
-export const nuevo = async (data) => {
+export const create = async (data) => {
   const userExist = await Usuarios.findOne({
-    $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
+    $or: [{ username: data.username }, { email: data.email }]
   });
 
   if (userExist) {
     let mensaje = "El usuario ya existe en el sistema";
-    if (userExist.nombreUsuario === data.nombreUsuario) {
+    if (userExist.username === data.username) {
       mensaje = "El nombre de usuario ya está registrado";
-    } else if (userExist.emailUser === data.emailUser) {
+    } else if (userExist.email === data.email) {
       mensaje = "El correo electrónico ya está registrado";
     }
 
@@ -38,15 +38,15 @@ export const nuevo = async (data) => {
   }
 
   try {
-    const { nombreUsuario, passwordUser, emailUser, rol } = data;
+    const { username, password, email, rol } = data;
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(passwordUser, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const nuevoUsuario = new Usuarios({
-      nombreUsuario,
-      passwordUser: hashedPassword,
-      emailUser,
+      username,
+      password: hashedPassword,
+      email,
       rol,
       status: 1
     });
@@ -66,20 +66,20 @@ export const nuevo = async (data) => {
   }
 };
 
-export const actualizarPorId = async (data) => {
+export const update = async (data) => {
   try {
     const id = data.id;
 
     const existeOtro = await Usuarios.findOne({
       _id: { $ne: id }, // Excluye al usuario que se está editando
-      $or: [{ nombreUsuario: data.nombreUsuario }, { emailUser: data.emailUser }]
+      $or: [{ username: data.username }, { email: data.email }]
     });
 
     if (existeOtro) {
       let mensaje = "Ya existe un usuario con ese nombre o correo.";
-      if (existeOtro.nombreUsuario === data.nombreUsuario) {
+      if (existeOtro.username === data.username) {
         mensaje = "El nombre de usuario ya está en uso.";
-      } else if (existeOtro.emailUser === data.emailUser) {
+      } else if (existeOtro.email === data.email) {
         mensaje = "El correo electrónico ya está en uso.";
       }
 
@@ -90,15 +90,15 @@ export const actualizarPorId = async (data) => {
     }
 
     const datos = {
-      nombreUsuario: data.nombreUsuario,
-      emailUser: data.emailUser,
+      username: data.username,
+      email: data.email,
       rol: data.rol,
       status: data.status || 1
     };
 
-    if (data.passwordUser) {
+    if (data.password) {
       const salt = await bcrypt.genSalt(10);
-      datos.passwordUser = await bcrypt.hash(data.passwordUser, salt);
+      datos.password = await bcrypt.hash(data.password, salt);
     }
 
     const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, datos, { new: true });
@@ -106,7 +106,8 @@ export const actualizarPorId = async (data) => {
     return {
       estado: true,
       mensaje: "Actualización exitosa",
-      result: usuarioActualizado
+      result: usuarioActualizado,
+      id: id
     };
   } catch (error) {
     return {

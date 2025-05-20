@@ -63,7 +63,10 @@ export const updatePatient = async (data) => {
     emailPaciente: data.email,
     telefonoPaciente: data.telefono,
     fechaNacimiento: data.nacimiento,
-    epsPaciente: data.eps
+    estadoCivil: data.estadoCivil,
+    epsPaciente: data.eps,
+    sexo: data.sexo,
+    direccion: data.direccion
   };
   try {
     let patientUpdate = await Patients.findByIdAndUpdate(id, info);
