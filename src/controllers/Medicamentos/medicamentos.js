@@ -15,6 +15,7 @@ export const getAll = async () => {
     };
   }
 };
+
 export const avatar = async (data) => {
   const file = data.file;
   const filepath = "./uploads/medicamentos/" + file;
