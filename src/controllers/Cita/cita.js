@@ -34,7 +34,7 @@ export const getAll = async () => {
 
 export const add = async (data) => {
   try {
-    // Validar que no exista una cita activa para el mismo médico y paciente en la misma fecha
+    // Validar cita duplicada
     const citaExist = await Cita.findOne({
       idMedico: new Types.ObjectId(data.idMedico),
       idPaciente: new Types.ObjectId(data.idPaciente),
@@ -60,16 +60,88 @@ export const add = async (data) => {
       status: 1,
     });
 
+    // Poblar referencias para enviar datos completos
+    const citaPopulada = await Cita.findById(citaNueva._id)
+      .populate("idPaciente")
+      .populate("idMedico")
+      .exec();
+
+    // Adaptar para FullCalendar
+    const eventoAdaptado = {
+      id: citaPopulada._id,
+      title: citaPopulada.descripcion,
+      start: citaPopulada.fecha.toISOString(),
+      extendedProps: {
+        paciente: citaPopulada.idPaciente,
+        medico: citaPopulada.idMedico,
+        status: citaPopulada.status,
+      },
+    };
+
     return {
       estado: true,
       mensaje: "Cita agendada correctamente",
-      data: citaNueva,
+      data: eventoAdaptado,
       statusCode: 201,
     };
   } catch (error) {
     return {
       estado: false,
       mensaje: `Error en el registro de la cita: ${error.message}`,
+      statusCode: 500,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    };
+  }
+};
+
+export const update = async (id, data) => {
+  try {
+    // Actualizar la cita por id
+    const citaActualizada = await Cita.findByIdAndUpdate(
+      id,
+      {
+        fecha: new Date(data.fecha),
+        descripcion: data.descripcion,
+        idPaciente: new Types.ObjectId(data.idPaciente),
+        idMedico: new Types.ObjectId(data.idMedico),
+        status: data.status,
+      },
+      { new: true } // Para que devuelva el documento actualizado
+    )
+      .populate("idPaciente")
+      .populate("idMedico")
+      .exec();
+
+    if (!citaActualizada) {
+      return {
+        estado: false,
+        mensaje: "Cita no encontrada",
+        statusCode: 404,
+      };
+    }
+
+    // Adaptar para FullCalendar
+    const eventoAdaptado = {
+      id: citaActualizada._id,
+      title: citaActualizada.descripcion,
+      start: citaActualizada.fecha.toISOString(),
+      extendedProps: {
+        paciente: citaActualizada.idPaciente,
+        medico: citaActualizada.idMedico,
+        status: citaActualizada.status,
+      },
+    };
+
+    return {
+      estado: true,
+      mensaje: "Cita actualizada correctamente",
+      data: eventoAdaptado,
+      statusCode: 200,
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error al actualizar la cita: ${error.message}`,
       statusCode: 500,
       error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     };

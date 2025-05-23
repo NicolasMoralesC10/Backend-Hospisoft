@@ -9,7 +9,7 @@ router.get("/cita/list", async (req, res) => {
   try {
     const resultado = await getAll();
     if (resultado.estado) {
-      res.status(200).json(resultado.data);
+      res.status(200).json(resultado);
     } else {
       res.status(500).json({ message: resultado.mensaje });
     }
@@ -18,30 +18,15 @@ router.get("/cita/list", async (req, res) => {
   }
 });
 
-// Ruta para crear una nueva cita con validación Celebrate
+// Ruta para crear una nueva cita
 router.post(
   "/cita/create",
   celebrate({
-    [Segments.BODY]: Joi.object({
-      fecha: Joi.date().iso().required().messages({
-        "date.base": "La fecha debe ser una fecha válida",
-        "date.isoDate": "La fecha debe estar en formato ISO 8601",
-        "any.required": "La fecha es obligatoria",
-      }),
-      descripcion: Joi.string().trim().min(3).required().messages({
-        "string.base": "La descripción debe ser un texto",
-        "string.empty": "La descripción no puede estar vacía",
-        "string.min": "La descripción debe tener al menos 3 caracteres",
-        "any.required": "La descripción es obligatoria",
-      }),
-      idPaciente: Joi.string().hex().length(24).required().messages({
-        "string.length": "El idPaciente debe tener 24 caracteres hexadecimales",
-        "any.required": "El idPaciente es obligatorio",
-      }),
-      idMedico: Joi.string().hex().length(24).required().messages({
-        "string.length": "El idMedico debe tener 24 caracteres hexadecimales",
-        "any.required": "El idMedico es obligatorio",
-      }),
+    body: Joi.object({
+      fecha: Joi.date().required(),
+      descripcion: Joi.string().trim().min(3).required(),
+      idPaciente: Joi.string().hex().length(24).required(),
+      idMedico: Joi.string().hex().length(24).required(),
     }),
   }),
   async (req, res) => {
