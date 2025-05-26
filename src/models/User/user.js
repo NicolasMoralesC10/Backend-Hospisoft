@@ -1,10 +1,11 @@
 import { Schema, model, Types } from "mongoose";
+
 const usuarioSchema = new Schema(
   {
     username: {
       type: String,
-      unique: true,
       required: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -12,19 +13,43 @@ const usuarioSchema = new Schema(
     },
     email: {
       type: String,
-      unique: true,
       required: true,
+      trim: true,
+      lowercase: true, // Normaliza emails a minúsculas
     },
     rol: {
-      type: Types.ObjectId, // Esto es para la foranea de roles
+      type: Types.ObjectId,
       ref: "Roles",
       required: true,
+      index: true, // Mejora rendimiento en populate()
     },
     status: {
       type: Number,
       required: true,
+      enum: [0, 1], // Valores permitidos: 0 = inactivo, 1 = activo
     },
   },
-  { collection: "users" }
+  {
+    collection: "users",
+    timestamps: true, // Crea campos: created_at y updated_at
+  }
 );
+
+// Índice condicionales únicos (solo aplican cuando status > 0)
+usuarioSchema.index(
+  { username: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $gt: 0 } },
+  }
+);
+
+usuarioSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $gt: 0 } },
+  }
+);
+
 export default model("Usuario", usuarioSchema);

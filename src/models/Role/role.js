@@ -2,11 +2,11 @@ import { Schema, model } from "mongoose";
 
 const rolSchema = new Schema(
   {
-    nombreRol: {
+    nombre: {
       type: String,
       required: true,
     },
-    descripcionRol: {
+    descripcion: {
       type: String,
       required: true,
     },

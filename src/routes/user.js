@@ -1,15 +1,16 @@
 import express from "express";
-import { celebrate, errors, Joi, Segments } from "celebrate";
+import { celebrate, Joi, Segments } from "celebrate";
+const router = express.Router();
+
 import {
   listarTodos,
   create,
   buscarPorId,
   update,
   eliminarPorId,
+  rollback,
   buscarMedicoPorIdUser,
 } from "../controllers/User/user.js";
-
-const router = express.Router();
 
 // Ruta para listar todos los usuarios
 router.get("/user/list", async (req, res) => {
@@ -78,7 +79,7 @@ router.put(
   }
 );
 
-// Ruta para eliminar un usuario por ID
+// Ruta para cambiar status, status = 0,
 router.put(
   "/user/delete",
   celebrate({
@@ -90,6 +91,25 @@ router.put(
     try {
       const { body: data } = req;
       const response = await eliminarPorId(data); // Llamamos la función para eliminar el usuario
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// Ruta para eliminar un usuario por ID
+router.delete(
+  "/user/delete",
+  celebrate({
+    body: Joi.object({
+      id: Joi.string().hex().length(24).required(), // ID del usuario (debe ser un ObjectId)
+    }),
+  }),
+  async (req, res) => {
+    try {
+      const { body: data } = req;
+      const response = await rollback(data); // Llamamos la función para eliminar el usuario
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ message: error.message });

@@ -19,16 +19,37 @@ export const getAll = async () => {
 };
 
 export const add = async (data) => {
-  const medicoExist = await Medicos.findOne({ documento: data.documento });
-  if (medicoExist) {
-    return {
-      estado: false,
-      mensaje: "El medico ya existe en el sistema.",
-    };
-  }
-
   try {
-    const medicoNuevo = new Medicos({
+    const medicoExist = await Medicos.findOne({
+      $or: [{ documento: data.documento }, { telefono: data.telefono }],
+      status: { $ne: 0 },
+    });
+
+    if (medicoExist) {
+      let mensaje = "El médico ya existe en el sistema";
+      if (medicoExist.documento === data.documento && medicoExist.telefono === data.telefono) {
+        mensaje = "Documento y teléfono ya registrados";
+      } else if (medicoExist.documento === data.documento) {
+        mensaje = "Documento ya registrado";
+      } else if (medicoExist.telefono === data.telefono) {
+        mensaje = "Teléfono ya registrado";
+      }
+
+      return {
+        estado: false,
+        mensaje,
+        statusCode: 409,
+        tipoError: "duplicado",
+        campoDuplicado:
+          medicoExist.documento === data.documento
+            ? medicoExist.telefono === data.telefono
+              ? ["documento", "telefono"]
+              : ["documento"]
+            : ["telefono"],
+      };
+    }
+
+    const medicoNuevo = await Medicos.create({
       nombre: data.nombre,
       documento: data.documento,
       telefono: data.telefono,
@@ -36,38 +57,88 @@ export const add = async (data) => {
       idUsuario: new Types.ObjectId(data.idUsuario),
       status: 1,
     });
-    await medicoNuevo.save();
+
     return {
       estado: true,
-      mensaje: "Medico registrado exitosamente.",
+      mensaje: "Médico registrado exitosamente",
+      data: medicoNuevo,
+      statusCode: 201,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error}`,
+      mensaje: `Error en el registro: ${error.message}`,
+      statusCode: 500,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     };
   }
 };
 
 export const updateMedico = async (data) => {
-  let id = data.id;
-  let info = {
-    nombre: data.nombre,
-    documento: data.documento,
-    telefono: data.telefono,
-    especialidad: data.especialidad,
-  };
   try {
-    let medicoUpdate = await Medicos.findByIdAndUpdate(id, info);
+    const { id, ...updateData } = data;
+
+    const existeOtro = await Medicos.findOne({
+      _id: { $ne: id },
+      status: { $ne: 0 },
+      $or: [
+        ...(updateData.documento ? [{ documento: updateData.documento }] : []),
+        ...(updateData.telefono ? [{ telefono: updateData.telefono }] : []),
+      ],
+    });
+
+    if (existeOtro) {
+      let mensaje = "Datos duplicados";
+      const campos = [];
+
+      if (
+        existeOtro.documento === updateData.documento &&
+        existeOtro.telefono === updateData.telefono
+      ) {
+        mensaje = "Documento y teléfono ya registrados";
+        campos.push("documento", "telefono");
+      } else if (existeOtro.documento === updateData.documento) {
+        mensaje = "Documento ya registrado";
+        campos.push("documento");
+      } else if (existeOtro.telefono === updateData.telefono) {
+        mensaje = "Teléfono ya registrado";
+        campos.push("telefono");
+      }
+
+      return {
+        estado: false,
+        mensaje,
+        statusCode: 409,
+        tipoError: "duplicado",
+        camposDuplicados: campos,
+      };
+    }
+
+    const medicoActualizado = await Medicos.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!medicoActualizado) {
+      return {
+        estado: false,
+        mensaje: "Médico no encontrado",
+        statusCode: 404,
+      };
+    }
+
     return {
       estado: true,
-      mensaje: "Actualizacion exitosa!",
-      result: medicoUpdate,
+      mensaje: "Actualización exitosa",
+      data: medicoActualizado,
+      statusCode: 200,
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error}`,
+      mensaje: `Error en la actualización: ${error.message}`,
+      statusCode: 500,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     };
   }
 };
