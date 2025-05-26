@@ -34,26 +34,57 @@ export const getAll = async () => {
 
 export const add = async (data) => {
   try {
-    // Validar cita duplicada
+    const fechaConsulta = new Date(data.fecha);
+
     const citaExist = await Cita.findOne({
       idMedico: new Types.ObjectId(data.idMedico),
       idPaciente: new Types.ObjectId(data.idPaciente),
-      fecha: new Date(data.fecha),
+      fecha: fechaConsulta,
       status: 1,
     });
 
     if (citaExist) {
       return {
         estado: false,
-        mensaje: "Ya existe una cita activa para este médico y paciente en la fecha indicada",
+        mensaje: "Ya existe una cita para este médico y paciente en la fecha indicada.",
         statusCode: 409,
         tipoError: "duplicado",
       };
     }
 
+    const citaPaciente = await Cita.findOne({
+      idPaciente: new Types.ObjectId(data.idPaciente),
+      fecha: fechaConsulta,
+      status: 1,
+    }).populate("idPaciente");
+
+    if (citaPaciente) {
+      return {
+        estado: false,
+        mensaje: `El paciente ${citaPaciente.idPaciente.nombrePaciente} ya tiene una cita para la fecha indicada.`,
+        statusCode: 409,
+        tipoError: "duplicado_paciente",
+      };
+    }
+
+    const citaMedico = await Cita.findOne({
+      idMedico: new Types.ObjectId(data.idMedico),
+      fecha: fechaConsulta,
+      status: 1,
+    }).populate("idMedico");
+
+    if (citaMedico) {
+      return {
+        estado: false,
+        mensaje: `El médico ${citaMedico.idMedico.nombre} ya tiene una cita para la fecha indicada.`,
+        statusCode: 409,
+        tipoError: "duplicado_medico",
+      };
+    }
+
     // Crear la nueva cita
     const citaNueva = await Cita.create({
-      fecha: new Date(data.fecha),
+      fecha: fechaConsulta,
       descripcion: data.descripcion,
       idPaciente: new Types.ObjectId(data.idPaciente),
       idMedico: new Types.ObjectId(data.idMedico),
@@ -80,7 +111,7 @@ export const add = async (data) => {
 
     return {
       estado: true,
-      mensaje: "Cita agendada correctamente",
+      mensaje: "Cita agendada correctamente.",
       data: eventoAdaptado,
       statusCode: 201,
     };
@@ -94,19 +125,72 @@ export const add = async (data) => {
   }
 };
 
-export const update = async (id, data) => {
+export const update = async (data) => {
   try {
-    // Actualizar la cita por id
+    const id = data.id;
+    const fechaConsulta = new Date(data.fecha);
+
+    const citaExist = await Cita.findOne({
+      _id: { $ne: id }, // Excluye la cita que se está actualizando
+      idMedico: new Types.ObjectId(data.idMedico),
+      idPaciente: new Types.ObjectId(data.idPaciente),
+      fecha: fechaConsulta,
+      status: 1,
+    });
+
+    if (citaExist) {
+      return {
+        estado: false,
+        mensaje: "Ya existe una cita para este médico y paciente en la fecha indicada.",
+        statusCode: 409,
+        tipoError: "duplicado",
+      };
+    }
+
+    // Valida si el paciente ya tiene otra cita en esa fecha (excluyendo la actual)
+    const citaPaciente = await Cita.findOne({
+      _id: { $ne: id },
+      idPaciente: new Types.ObjectId(data.idPaciente),
+      fecha: fechaConsulta,
+      status: 1,
+    }).populate("idPaciente");
+
+    if (citaPaciente) {
+      return {
+        estado: false,
+        mensaje: `El paciente ${citaPaciente.idPaciente.nombrePaciente} ya tiene una cita para la fecha indicada.`,
+        statusCode: 409,
+        tipoError: "duplicado_paciente",
+      };
+    }
+
+    // Valida si el médico ya tiene otra cita en esa fecha (excluyendo la actual)
+    const citaMedico = await Cita.findOne({
+      _id: { $ne: id },
+      idMedico: new Types.ObjectId(data.idMedico),
+      fecha: fechaConsulta,
+      status: 1,
+    }).populate("idMedico");
+
+    if (citaMedico) {
+      return {
+        estado: false,
+        mensaje: `El médico ${citaMedico.idMedico.nombre} ya tiene una cita para la fecha indicada.`,
+        statusCode: 409,
+        tipoError: "duplicado_medico",
+      };
+    }
+
     const citaActualizada = await Cita.findByIdAndUpdate(
       id,
       {
-        fecha: new Date(data.fecha),
+        fecha: fechaConsulta,
         descripcion: data.descripcion,
         idPaciente: new Types.ObjectId(data.idPaciente),
         idMedico: new Types.ObjectId(data.idMedico),
         status: data.status,
       },
-      { new: true } // Para que devuelva el documento actualizado
+      { new: true } // Devuelve el documento actualizado
     )
       .populate("idPaciente")
       .populate("idMedico")
@@ -146,130 +230,4 @@ export const update = async (id, data) => {
       error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     };
   }
-};
-
-/* ---------------------------------------------------- */
-
-export const updateMedico = async (data) => {
-  try {
-    const { id, ...updateData } = data;
-
-    const existeOtro = await Medicos.findOne({
-      _id: { $ne: id },
-      status: { $ne: 0 },
-      $or: [
-        ...(updateData.documento ? [{ documento: updateData.documento }] : []),
-        ...(updateData.telefono ? [{ telefono: updateData.telefono }] : []),
-      ],
-    });
-
-    if (existeOtro) {
-      let mensaje = "Datos duplicados";
-      const campos = [];
-
-      if (
-        existeOtro.documento === updateData.documento &&
-        existeOtro.telefono === updateData.telefono
-      ) {
-        mensaje = "Documento y teléfono ya registrados";
-        campos.push("documento", "telefono");
-      } else if (existeOtro.documento === updateData.documento) {
-        mensaje = "Documento ya registrado";
-        campos.push("documento");
-      } else if (existeOtro.telefono === updateData.telefono) {
-        mensaje = "Teléfono ya registrado";
-        campos.push("telefono");
-      }
-
-      return {
-        estado: false,
-        mensaje,
-        statusCode: 409,
-        tipoError: "duplicado",
-        camposDuplicados: campos,
-      };
-    }
-
-    const medicoActualizado = await Medicos.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!medicoActualizado) {
-      return {
-        estado: false,
-        mensaje: "Médico no encontrado",
-        statusCode: 404,
-      };
-    }
-
-    return {
-      estado: true,
-      mensaje: "Actualización exitosa",
-      data: medicoActualizado,
-      statusCode: 200,
-    };
-  } catch (error) {
-    return {
-      estado: false,
-      mensaje: `Error en la actualización: ${error.message}`,
-      statusCode: 500,
-      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
-    };
-  }
-};
-
-export const searchById = async (data) => {
-  let id = data.id;
-  try {
-    let result = await Medicos.findById(id).populate("idUsuario").exec();
-
-    return {
-      estado: true,
-      mensaje: "Consulta exitosa",
-      result: result,
-    };
-  } catch (error) {
-    return {
-      estado: false,
-      mensaje: `Error: ${error}`,
-    };
-  }
-};
-
-export const deleteById = async (data) => {
-  let id = data.id;
-  try {
-    let result = await Medicos.findByIdAndUpdate(id, { status: 0 });
-    return {
-      estado: true,
-      result: result,
-    };
-  } catch (error) {
-    return {
-      estado: false,
-      mensaje: `Error: ${error}`,
-    };
-  }
-};
-
-export const avatar = (req, res) => {
-  // Sacar el parametro de la url
-  const file = req.params.file;
-
-  // Montar el path real de la imagen
-  const filePath = "./uploads/usuarios/" + file;
-
-  // Comprobar que existe
-  stat(filePath, (error, exists) => {
-    if (!exists) {
-      return res.status(404).send({
-        status: "error",
-        message: "No existe la imagen",
-      });
-    }
-
-    // Devolver un file
-    return res.sendFile(resolve(filePath));
-  });
 };
