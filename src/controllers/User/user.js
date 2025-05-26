@@ -9,20 +9,21 @@ export const listarTodos = async (req, res) => {
     const listaUsuarios = await Usuarios.find({ status: { $gt: 0 } }).exec();
     res.status(200).send({
       estado: true,
-      data: listaUsuarios,
+      data: listaUsuarios
     });
   } catch (error) {
     res.status(500).send({
       estado: false,
-      mensaje: `Error: ${error.message}`,
+      mensaje: `Error: ${error.message}`
     });
   }
 };
 
 export const create = async (data) => {
-  const userExist = await Usuarios.findOne({
-    $or: [{ username: data.username }, { email: data.email }]
-  });
+  try {
+    const userExist = await Usuarios.findOne({
+      $or: [{ username: data.username }, { email: data.email }]
+    });
 
     if (userExist) {
       let mensaje = "El usuario ya existe en el sistema";
@@ -38,7 +39,7 @@ export const create = async (data) => {
         estado: false,
         mensaje,
         statusCode: 409, // Conflict
-        tipoError: "duplicado",
+        tipoError: "duplicado"
       };
     }
 
@@ -51,21 +52,21 @@ export const create = async (data) => {
       password: hashedPassword,
       email,
       rol,
-      status: 1,
+      status: 1
     });
 
     return {
       estado: true,
       mensaje: "Usuario registrado exitosamente",
       data: newUser,
-      statusCode: 201,
+      statusCode: 201
     };
   } catch (error) {
     return {
       estado: false,
       mensaje: `Error en el registro: ${error.message}`,
       statusCode: 500,
-      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined
     };
   }
 };
@@ -93,42 +94,41 @@ export const update = async (data) => {
         estado: false,
         mensaje,
         statusCode: 409,
-        tipoError: "duplicado",
+        tipoError: "duplicado"
       };
     }
 
     const updatePayload = {
       ...updateData,
       ...(updateData.password && {
-        password: await bcrypt.hash(updateData.password, await bcrypt.genSalt(10)),
-      }),
+        password: await bcrypt.hash(updateData.password, await bcrypt.genSalt(10))
+      })
     };
 
     const usuarioActualizado = await Usuarios.findByIdAndUpdate(id, updatePayload, {
       new: true,
-      runValidators: true,
+      runValidators: true
     });
 
     if (!usuarioActualizado) {
       return {
         estado: false,
         mensaje: "Usuario no encontrado",
-        statusCode: 404,
+        statusCode: 404
       };
     }
 
     return {
       estado: true,
       mensaje: "Actualización exitosa",
-      result: usuarioActualizado,
-      id: id
+      result: usuarioActualizado
     };
   } catch (error) {
     return {
       estado: false,
       mensaje: `Error en la actualización: ${error.message}`,
       statusCode: 500,
-      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined
     };
   }
 };
@@ -141,12 +141,12 @@ export const buscarPorId = async (data) => {
     return {
       estado: true,
       mensaje: "Consulta exitosa",
-      result: usuario,
+      result: usuario
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`,
+      mensaje: `Error: ${error.message}`
     };
   }
 };
@@ -155,7 +155,7 @@ export const buscarMedicoPorIdUser = async (data) => {
   try {
     const usuarioId = new Types.ObjectId(data.id);
     const medicoRelacionado = await Medico.findOne({
-      idUsuario: usuarioId,
+      idUsuario: usuarioId
     }).exec();
 
     return {
@@ -164,12 +164,12 @@ export const buscarMedicoPorIdUser = async (data) => {
       mensaje: medicoRelacionado
         ? "El usuario está relacionado con un medico."
         : "El usuario no está relacionado con ningún medico.",
-      medico: medicoRelacionado || null,
+      medico: medicoRelacionado || null
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`,
+      mensaje: `Error: ${error.message}`
     };
   }
 };
@@ -185,12 +185,12 @@ export const buscarPorIdUser = async (data) => {
       mensaje: pacienteRelacionado
         ? "El usuario está relacionado con un paciente."
         : "El usuario no está relacionado con ningún paciente.",
-      paciente: pacienteRelacionado || null,
+      paciente: pacienteRelacionado || null
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`,
+      mensaje: `Error: ${error.message}`
     };
   }
 };
@@ -200,18 +200,18 @@ export const eliminarPorId = async (data) => {
     const id = data.id;
 
     const usuarioEliminado = await Usuarios.findByIdAndUpdate(id, {
-      status: 0,
+      status: 0
     });
 
     return {
       estado: true,
       mensaje: "Usuario eliminado (estado desactivado)",
-      result: usuarioEliminado,
+      result: usuarioEliminado
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`,
+      mensaje: `Error: ${error.message}`
     };
   }
 };
@@ -225,12 +225,12 @@ export const rollback = async (data) => {
     return {
       estado: true,
       mensaje: "Usuario eliminado (rollback)",
-      result: usuarioEliminado,
+      result: usuarioEliminado
     };
   } catch (error) {
     return {
       estado: false,
-      mensaje: `Error: ${error.message}`,
+      mensaje: `Error: ${error.message}`
     };
   }
 };
