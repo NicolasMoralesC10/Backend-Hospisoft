@@ -121,7 +121,8 @@ export const update = async (data) => {
     return {
       estado: true,
       mensaje: "Actualización exitosa",
-      result: usuarioActualizado
+      result: usuarioActualizado,
+      id: id
     };
   } catch (error) {
     return {
