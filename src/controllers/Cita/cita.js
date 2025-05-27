@@ -231,3 +231,37 @@ export const update = async (data) => {
     };
   }
 };
+
+export const cancel = async (id) => {
+  try {
+    const citaCancelada = await Cita.findByIdAndUpdate(id, { status: 0 }, { new: true })
+      .populate("idPaciente")
+      .populate("idMedico")
+      .exec();
+
+    if (!citaCancelada) {
+      return {
+        estado: false,
+        mensaje: "Cita no encontrada.",
+        statusCode: 404,
+      };
+    }
+
+    return {
+      estado: true,
+      mensaje: "Cita cancelada correctamente.",
+      data: {
+        id: citaCancelada._id,
+        status: citaCancelada.status,
+      },
+      statusCode: 200,
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error al cancelar la cita: ${error.message}`,
+      statusCode: 500,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    };
+  }
+};
