@@ -111,7 +111,7 @@ export const add = async (data) => {
 
     return {
       estado: true,
-      mensaje: "Cita agendada correctamente.",
+      mensaje: "La cita se ha registrado correctamente.",
       data: eventoAdaptado,
       statusCode: 201,
     };
@@ -218,7 +218,7 @@ export const update = async (data) => {
 
     return {
       estado: true,
-      mensaje: "Cita actualizada correctamente",
+      mensaje: "La cita se ha actualizado correctamente.",
       data: eventoAdaptado,
       statusCode: 200,
     };
