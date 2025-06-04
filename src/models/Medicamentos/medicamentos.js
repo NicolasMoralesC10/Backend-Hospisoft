@@ -3,73 +3,71 @@ const medicamentosSchema = new Schema(
   {
     nombre: {
       type: String,
-      required: true,
+      required: true
     },
     codigo: {
       type: String,
-      required: true,
+      required: true
     },
     presentacion: {
       // (Tabletas, jarabe, Inyección)
       type: String,
-      required: true,
+      required: true
     },
     descripcion: {
       type: String,
-      required: true,
+      required: true
     },
     concentracion: {
       // (500mg, 5 mg/ml)
       type: String,
-      required: true,
+      required: true
     },
     formaFarmaceutica: {
       // (oral, solucion oral, pomada, etc.)
       type: String,
-      required: true,
+      required: true
     },
     viaAdminist: {
       // (oral, intravenosa, tópica, etc)
 
       type: String,
-      required: true,
+      required: true
     },
     uniEnvase: {
       // 10 tabletas, 1 frasco de 100 mL)
       type: String,
-      required: true,
+      required: true
     },
     uniMedida: {
       // (tabletas, frascos, ampollas)
       type: String,
-      required: true,
+      required: true
     },
     stockDisponible: {
       type: Number,
-      required: true,
+      required: true
     },
     fechaVencimiento: {
-      type: Date,
-      required: true,
+      type: String,
+      required: true
     },
     precioCompra: {
       type: Number,
-      required: true,
+      required: true
     },
     precioVenta: {
       type: Number,
-      required: true,
+      required: true
     },
-    imgen: {
-      // (tabletas, frascos, ampollas)
+    imagen: {
       type: String,
-      default: "",
+      default: ""
     },
-
     status: {
       type: Number,
-      required: true,
-    },
+      required: true
+    }
   },
   { collection: "medicamentos" }
 );

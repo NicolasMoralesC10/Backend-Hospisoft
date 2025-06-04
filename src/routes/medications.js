@@ -4,18 +4,20 @@ const router = express.Router();
 import {
   getAll,
   add,
-  updateMedical,
+  updateMedicament,
   searchById,
+  getList,
   deleteById,
 } from "../controllers/Medicamentos/medicamentos.js";
-
+import path from "path";
+import fs from "fs";
 import { celebrate, Joi, errors, Segments } from "celebrate";
 
 // configurar un bodega para las imagenes de multer
 const storage = multer.diskStorage({
   // ruta de destino para almacenar los archivos
   destination: (req, file, cb) => {
-    cb(null, "./uploads/usuarios/");
+    cb(null, "./uploads/medicamentos");
   },
   // estructara para determinar los archivos
   filename: (req, file, cb) => {
@@ -23,27 +25,60 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "-" + file.originalname);
   },
 });
-const uploads = multer({ storage });
-router.get("/medicamentos/list", async (req, res) => {
+
+const schema = Joi.object({
+  nombre: Joi.string().required(),
+  codigo: Joi.string().required(),
+  presentacion: Joi.string().required(),
+  descripcion: Joi.string().required(),
+  concentracion: Joi.string().required(),
+  formaFarma: Joi.string().required(),
+  administracion: Joi.string().required(),
+  envase: Joi.string().required(),
+  medida: Joi.string().required(),
+  stock: Joi.number().required(),
+  vencimiento: Joi.string().required(),
+  prCompra: Joi.number().required(),
+  prVenta: Joi.number().required(),
+});
+
+const uploads = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
+router.get("/medicaments/list", async (req, res) => {
   try {
     const response = await getAll();
     res.status(200).json(response);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error al obtener la lista de medicamentos" });
+    res.status(500).json({ message: "Error al obtener la lista de medicamentos" });
   }
 });
-router.get("/medicamentos/:file", async (req, res) => {
+router.get("/medicaments/info", async (req, res) => {
   try {
-    const { body: data } = req;
-    const response = await avatar();
+    const response = await getList();
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener la lista de médicos" });
+    res.status(500).json({ message: "Error al obtener la lista de medicamentos" });
   }
 });
-router.get("/medicamentos/:id", async (req, res) => {
+router.get("/medicaments/image/:file", async (req, res) => {
+  const { file } = req.params;
+  try {
+    const filepath = path.resolve("./src/uploads/medicamentos", file);
+
+    fs.stat(filepath, (err, stats) => {
+      if (err || !stats.isFile()) {
+        return res.status(404).json({
+          status: false,
+          message: `No existe la imagen: ${file}`,
+        });
+      }
+      // Enviar el archivo como respuesta
+      res.sendFile(filepath);
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener la imagen" });
+  }
+});
+router.get("/medicaments/:id", async (req, res) => {
   try {
     const data = req.params.id;
     const response = await searchById(data);
@@ -53,59 +88,44 @@ router.get("/medicamentos/:id", async (req, res) => {
   }
 });
 router.post(
-  "/medicamentos/create",
+  "/medicaments/create",
   uploads.single("img"),
   celebrate({
-    body: Joi.object({
-      nombre: Joi.string().required(),
-      codigo: Joi.string().required(),
-      presentacion: Joi.string().required(),
-      descripcion: Joi.string().required(),
-      concentracion: Joi.string().required(),
-      formaFarma: Joi.string().required(),
-      administracion: Joi.string().required(),
-      envase: Joi.string().required(),
-      medida: Joi.string().required(),
-      stock: Joi.number().required(),
-      vencimiento: Joi.date().required(),
-      prCompra: Joi.number().required(),
-      prVenta: Joi.number().required(),
-    }),
-  }),
-  async (req, res) => {
-    try {
-      const { body: data } = req; 
-      const response = await add(data, req.file);
-      res.status(200).json(response);
-    } catch (error) {
-      res.status(500).json({ message: "Error al Registrar el Medicamento" });
-    }
-  }
-);
-router.post(
-  "/medicamentos/update",
-  celebrate({
-    body: Joi.object({
-      id: Joi.string().required(),
-      nombre: Joi.string().required(),
-      codigo: Joi.string().required(),
-      presentacion: Joi.string().required(),
-      descripcion: Joi.string().required(),
-      concentracion: Joi.string().required(),
-      formaFarma: Joi.string().required(),
-      administracion: Joi.string().required(),
-      envase: Joi.string().required(),
-      medida: Joi.string().required(),
-      stock: Joi.number().required(),
-      vencimiento: Joi.date().required(),
-      prCompra: Joi.number().required(),
-      prVenta: Joi.number().required(),
-    }),
+    body: schema,
   }),
   async (req, res) => {
     try {
       const { body: data } = req;
-      const response = await updateMedical(data);
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No se ha subido ninguna imagen" });
+      }
+      const response = await add(data, file);
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({
+        message: `Error al Registrar el Medicamento`,
+        error: `${error}`,
+      });
+    }
+  }
+);
+router.put(
+  "/medicaments/update/:id",
+  uploads.single("img"),
+  celebrate({
+    body: schema,
+  }),
+  async (req, res) => {
+    try {
+      const { body: data } = req;
+      const file = req.file;
+      const id = req.params.id;
+
+      if (!file) {
+        return res.status(400).json({ message: "No se ha subido ninguna imagen" });
+      }
+      const response = await updateMedicament(data, file, id);
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ message: "Error al actualizar" });
@@ -113,7 +133,7 @@ router.post(
   }
 );
 router.post(
-  "/medicamentos/delet",
+  "/medicaments/delet",
   celebrate({
     body: Joi.object({
       id: Joi.string().required(),
@@ -129,4 +149,6 @@ router.post(
     }
   }
 );
+
+router.use(errors());
 export default router;
