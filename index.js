@@ -3,6 +3,8 @@ import cors from "cors";
 import { errors } from "celebrate";
 import { errorHandler } from "./src/middleware/errorHandler.js";
 import { cnx } from "./src/models/db/connection.js";
+
+import auth from "./src/routes/auth.js";
 import medicamentos from "./src/routes/medicamentos.js";
 import patient from "./src/routes/patient.js";
 import medico from "./src/routes/medico.js";
@@ -10,11 +12,17 @@ import usuarioRuta from "./src/routes/user.js";
 import rolesRuta from "./src/routes/roles.js";
 import cita from "./src/routes/cita.js";
 
+import { authenticate } from "./src/middleware/auth.js";
+
+import dotenv from "dotenv";
+dotenv.config();
+
 const app = express();
 app.use(express.json());
 app.use(cors());
 
 // rutas
+app.use("/api", auth);
 app.use("/api", medicamentos);
 app.use("/api", medico);
 app.use("/api", patient);
