@@ -11,7 +11,7 @@ import medico from "./src/routes/medico.js";
 import patient from "./src/routes/patient.js";
 import cita from "./src/routes/cita.js";
 import medicamentos from "./src/routes/medicamentos.js";
-import usuario from "./src/routes/user.js";
+import user from "./src/routes/user.js";
 import roles from "./src/routes/roles.js";
 
 dotenv.config();
@@ -26,7 +26,7 @@ app.use("/api", authenticate, medico);
 app.use("/api", authenticate, patient);
 app.use("/api", authenticate, cita);
 app.use("/api", authenticate, medicamentos);
-app.use("/api", authenticate, usuario);
+app.use("/api", authenticate, user);
 app.use("/api", authenticate, roles);
 
 app.use(errors());
