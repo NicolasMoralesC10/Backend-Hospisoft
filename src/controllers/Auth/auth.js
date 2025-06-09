@@ -23,7 +23,7 @@ export const login = async (data) => {
         rol: usuario.rol.nombre,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "6h" }
     );
 
     return {

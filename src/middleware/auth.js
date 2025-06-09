@@ -19,9 +19,9 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: "Usuario no válido" });
     }
 
-    // Si la verificación es exitosa, guardamos la info del usuario en req.user
+    // Si la verificación es exitosa, se almacena la info del usuario en req.user
     req.user = usuario;
-    next();
+    next(); // Permite el acceso a la ruta protegida
   } catch (error) {
     res.status(403).json({ error: "Token inválido o expirado" });
   }
