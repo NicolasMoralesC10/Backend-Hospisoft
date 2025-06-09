@@ -1,6 +1,6 @@
 import express from "express";
 import { celebrate, Joi, Segments } from "celebrate";
-import { getAll, add, update } from "../controllers/Cita/cita.js";
+import { getAll, add, update, cancel } from "../controllers/Cita/cita.js";
 
 const router = express.Router();
 
@@ -57,6 +57,25 @@ router.put(
       const { body: data } = req;
       const response = await update(data);
       res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// Cancelar cita (cambiar status a 0)
+router.put(
+  "/cita/cancel",
+  celebrate({
+    body: Joi.object({
+      id: Joi.string().hex().length(24).required(),
+    }),
+  }),
+  async (req, res) => {
+    try {
+      const { id } = req.body;
+      const resultado = await cancel(id);
+      res.status(resultado.statusCode).json(resultado);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

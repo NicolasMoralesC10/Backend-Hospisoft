@@ -111,7 +111,7 @@ export const add = async (data) => {
 
     return {
       estado: true,
-      mensaje: "Cita agendada correctamente.",
+      mensaje: "La cita se ha registrado correctamente.",
       data: eventoAdaptado,
       statusCode: 201,
     };
@@ -218,7 +218,7 @@ export const update = async (data) => {
 
     return {
       estado: true,
-      mensaje: "Cita actualizada correctamente",
+      mensaje: "La cita se ha actualizado correctamente.",
       data: eventoAdaptado,
       statusCode: 200,
     };
@@ -226,6 +226,40 @@ export const update = async (data) => {
     return {
       estado: false,
       mensaje: `Error al actualizar la cita: ${error.message}`,
+      statusCode: 500,
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    };
+  }
+};
+
+export const cancel = async (id) => {
+  try {
+    const citaCancelada = await Cita.findByIdAndUpdate(id, { status: 0 }, { new: true })
+      .populate("idPaciente")
+      .populate("idMedico")
+      .exec();
+
+    if (!citaCancelada) {
+      return {
+        estado: false,
+        mensaje: "Cita no encontrada.",
+        statusCode: 404,
+      };
+    }
+
+    return {
+      estado: true,
+      mensaje: "Cita cancelada correctamente.",
+      data: {
+        id: citaCancelada._id,
+        status: citaCancelada.status,
+      },
+      statusCode: 200,
+    };
+  } catch (error) {
+    return {
+      estado: false,
+      mensaje: `Error al cancelar la cita: ${error.message}`,
       statusCode: 500,
       error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     };
