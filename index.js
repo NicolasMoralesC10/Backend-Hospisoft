@@ -12,7 +12,7 @@ import patient from "./src/routes/patient.js";
 import cita from "./src/routes/cita.js";
 import medicamentos from "./src/routes/medications.js";
 import usuario from "./src/routes/user.js";
-import roles from "./src/routes/roles.js";
+import roles from "./src/routes/role.js";
 
 dotenv.config();
 

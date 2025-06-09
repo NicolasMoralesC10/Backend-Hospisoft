@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import Usuario from "../models/Usuario/user.js";
+import Usuario from "../models/User/user.js";
 
 export const authenticate = async (req, res, next) => {
   // Obtener el token desde el header Authorization (Bearer token)
