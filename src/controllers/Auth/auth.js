@@ -6,12 +6,11 @@ export const login = async (data) => {
   try {
     const { email, password } = data;
 
-    const usuario = await Usuario.findOne({ email })
-      .populate("rol", "nombre permisos")
-      .select("+password");
+    const usuario = await Usuario.findOne({ email }).populate("rol", "nombre permisos").select("+password");
 
     if (!usuario) throw new Error("Credenciales inválidas");
     if (usuario.status === 0) throw new Error("Cuenta desactivada");
+    if (!usuario.rol) throw new Error("El usuario no tiene un rol asignado");
 
     const match = await bcrypt.compare(password, usuario.password);
     if (!match) throw new Error("Credenciales inválidas");
