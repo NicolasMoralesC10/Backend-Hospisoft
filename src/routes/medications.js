@@ -1,14 +1,7 @@
 import express, { json } from "express";
 import multer from "multer";
 const router = express.Router();
-import {
-  getAll,
-  add,
-  updateMedicament,
-  searchById,
-  getList,
-  deleteById,
-} from "../controllers/Medicamentos/medicamentos.js";
+import { getAll, add, updateMedicament, searchById, getList, deleteById } from "../controllers/Medicamentos/medicamentos.js";
 import path from "path";
 import fs from "fs";
 import { celebrate, Joi, errors, Segments } from "celebrate";
@@ -23,7 +16,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
-  },
+  }
 });
 
 const schema = Joi.object({
@@ -35,7 +28,7 @@ const schema = Joi.object({
   stock: Joi.number().required(),
   vencimiento: Joi.string().required(),
   prCompra: Joi.number().required(),
-  prVenta: Joi.number().required(),
+  prVenta: Joi.number().required()
 });
 
 const uploads = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
@@ -63,7 +56,7 @@ router.get("/medicaments/image/:file", (req, res) => {
     if (err || !stats.isFile()) {
       return res.status(404).json({
         status: false,
-        message: `No existe la imagen: ${file}`,
+        message: `No existe la imagen: ${file}`
       });
     }
     res.sendFile(filepath);
@@ -84,7 +77,7 @@ router.post(
   "/medicaments/create",
   uploads.single("img"),
   celebrate({
-    body: schema,
+    body: schema
   }),
   async (req, res) => {
     try {
@@ -98,7 +91,7 @@ router.post(
     } catch (error) {
       res.status(500).json({
         message: `Error al Registrar el Medicamento`,
-        error: `${error}`,
+        error: `${error}`
       });
     }
   }
@@ -108,7 +101,7 @@ router.put(
   "/medicaments/update/:id",
   uploads.single("img"),
   celebrate({
-    body: schema,
+    body: schema
   }),
   async (req, res) => {
     try {
@@ -116,9 +109,6 @@ router.put(
       const file = req.file;
       const id = req.params.id;
 
-      if (!file) {
-        return res.status(400).json({ message: "No se ha subido ninguna imagen" });
-      }
       const response = await updateMedicament(data, file, id);
       res.status(200).json(response);
     } catch (error) {
@@ -130,8 +120,8 @@ router.post(
   "/medicaments/delet",
   celebrate({
     body: Joi.object({
-      id: Joi.string().required(),
-    }),
+      id: Joi.string().required()
+    })
   }),
   async (req, res) => {
     try {

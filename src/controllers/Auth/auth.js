@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Usuario from "../../models/User/user.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const login = async (data) => {
   try {
@@ -19,7 +21,7 @@ export const login = async (data) => {
       {
         id: usuario._id,
         email: usuario.email,
-        rol: usuario.rol.nombre,
+        rol: usuario.rol.nombre
       },
       process.env.JWT_SECRET,
       { expiresIn: "6h" }
@@ -31,8 +33,8 @@ export const login = async (data) => {
         id: usuario._id,
         email: usuario.email,
         username: usuario.username,
-        rol: usuario.rol.nombre,
-      },
+        rol: usuario.rol.nombre
+      }
     };
   } catch (error) {
     throw error;
