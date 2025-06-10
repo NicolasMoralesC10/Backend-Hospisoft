@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { errors } from "celebrate";
 import { cnx } from "./src/models/db/connection.js";
 import { errorHandler } from "./src/middleware/errorHandler.js";
-import { authenticate } from "./src/middleware/auth.js";
+import { authenticate, verifyRole } from "./src/middleware/auth.js";
 
 import auth from "./src/routes/auth.js";
 import medico from "./src/routes/medico.js";
@@ -22,7 +22,12 @@ app.use(cors());
 
 // rutas
 app.use("/api", auth);
-app.use("/api", authenticate, medico);
+app.use(
+  "/api",
+  authenticate,
+  verifyRole(["superuser", "admin", "medico"]),
+  medico
+);
 app.use("/api", authenticate, patient);
 app.use("/api", authenticate, cita);
 app.use("/api", authenticate, medicamentos);
