@@ -22,17 +22,12 @@ app.use(cors());
 
 // rutas
 app.use("/api", auth);
-app.use(
-  "/api",
-  authenticate,
-  verifyRole(["superuser", "admin", "medico"]),
-  medico
-);
-app.use("/api", authenticate, patient);
-app.use("/api", authenticate, cita);
-app.use("/api", authenticate, medicamentos);
-app.use("/api", authenticate, user);
-app.use("/api", authenticate, roles);
+app.use("/api", authenticate, verifyRole(["superuser", "admin"]), medico);
+app.use("/api", authenticate, verifyRole(["superuser", "admin"]), patient);
+app.use("/api", authenticate, verifyRole(["superuser", "admin", "secretaria", "medico", "paciente"]), cita);
+app.use("/api", authenticate, verifyRole(["superuser", "admin", "medico", "dispensario"]), medicamentos);
+app.use("/api", authenticate, verifyRole(["superuser", "admin", "secretaria"]), user);
+app.use("/api", authenticate, verifyRole(["superuser", "admin", "secretaria"]), roles);
 
 app.use(errors());
 app.use(errorHandler);

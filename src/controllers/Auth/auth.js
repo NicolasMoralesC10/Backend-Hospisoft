@@ -32,8 +32,8 @@ export const login = async (data) => {
         id: usuario._id,
         email: usuario.email,
         username: usuario.username,
-        rol: usuario.rol.nombre,
       },
+      rol: usuario.rol.nombre,
     };
   } catch (error) {
     throw error;
