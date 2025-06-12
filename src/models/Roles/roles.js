@@ -5,10 +5,11 @@ const rolSchema = new Schema(
     nombre: {
       type: String,
       required: true,
+      unique: true,
+      lowercase: true,
     },
     descripcion: {
       type: String,
-      required: true,
     },
   },
   { collection: "roles" }
