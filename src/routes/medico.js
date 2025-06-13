@@ -12,7 +12,7 @@ import {
   avatar,
 } from "../controllers/Medico/medico.js";
 
-router.get("/medico/list", async (req, res) => {
+router.get("/list", async (req, res) => {
   try {
     const response = await getAll();
     res.status(200).json(response);
@@ -21,7 +21,7 @@ router.get("/medico/list", async (req, res) => {
   }
 });
 
-router.get("/medico/img/", async (req, res) => {
+router.get("/img/", async (req, res) => {
   try {
     const response = await avatar();
     res.status(200).json(response);
@@ -30,7 +30,7 @@ router.get("/medico/img/", async (req, res) => {
   }
 });
 
-router.get("/medico/search/:id", async (req, res) => {
+router.get("/search/:id", async (req, res) => {
   try {
     const data = req.params.id;
     const response = await searchById({ id: data });
@@ -41,7 +41,7 @@ router.get("/medico/search/:id", async (req, res) => {
 });
 
 router.post(
-  "/medico/create",
+  "/create",
   celebrate({
     body: Joi.object({
       nombre: Joi.string().min(3).required(),
@@ -63,7 +63,7 @@ router.post(
 );
 
 router.put(
-  "/medico/update",
+  "/update",
   celebrate({
     body: Joi.object({
       id: Joi.string().hex().length(24).required(),
@@ -85,7 +85,7 @@ router.put(
 );
 
 router.put(
-  "/medico/delete",
+  "/delete",
   celebrate({
     body: Joi.object({
       id: Joi.string().required(),

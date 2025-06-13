@@ -5,9 +5,9 @@ import { getAll, add, update, cancel } from "../controllers/Cita/cita.js";
 const router = express.Router();
 
 // Obtener citas activas
-router.get("/cita/list", async (req, res) => {
+router.get("/list", async (req, res) => {
   try {
-    const resultado = await getAll();
+    const resultado = await getAll(req);
     if (resultado.estado) {
       res.status(200).json(resultado);
     } else {
@@ -20,7 +20,7 @@ router.get("/cita/list", async (req, res) => {
 
 // Nueva cita
 router.post(
-  "/cita/create",
+  "/create",
   celebrate({
     body: Joi.object({
       fecha: Joi.date().required(),
@@ -42,7 +42,7 @@ router.post(
 
 // Actualizar cita
 router.put(
-  "/cita/update",
+  "/update",
   celebrate({
     body: Joi.object({
       id: Joi.string().hex().length(24).required(),
@@ -65,7 +65,7 @@ router.put(
 
 // Cancelar cita (cambiar status a 0)
 router.put(
-  "/cita/cancel",
+  "/cancel",
   celebrate({
     body: Joi.object({
       id: Joi.string().hex().length(24).required(),

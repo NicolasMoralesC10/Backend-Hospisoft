@@ -1,12 +1,38 @@
 import Cita from "../../models/Cita/cita.js";
+import Medico from "../../models/Medico/medico.js";
+import Paciente from "../../models/Paciente/patient.js";
 import { Types } from "mongoose";
 
-export const getAll = async () => {
+export const getAll = async (req) => {
   try {
-    let allCitas = await Cita.find({ status: 1 })
-      .populate("idPaciente")
-      .populate("idMedico")
-      .exec();
+    const { rol, userId } = req.query; // Recibe rol e id por query params
+
+    let filtro = { status: 1 };
+
+    if (rol === "paciente") {
+      const paciente = await Paciente.findOne({ idUsuario: userId });
+
+      if (!paciente) {
+        return {
+          estado: false,
+          mensaje: "No se encontró un paciente asociado a este usuario.",
+        };
+      } else {
+        filtro.idPaciente = paciente._id;
+      }
+    } else if (rol === "medico") {
+      const medico = await Medico.findOne({ idUsuario: userId });
+
+      if (!medico) {
+        return {
+          estado: false,
+          mensaje: "No se encontró un médico asociado a este usuario.",
+        };
+      } else {
+        filtro.idMedico = medico._id;
+      }
+    }
+    const allCitas = await Cita.find(filtro).populate("idPaciente").populate("idMedico").exec();
 
     // Mapeo para adaptar al formato de FullCalendar
     const eventos = allCitas.map((cita) => ({

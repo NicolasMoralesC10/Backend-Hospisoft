@@ -13,7 +13,7 @@ import {
 
 import { celebrate, Joi, errors, Segments } from "celebrate";
 
-router.get("/patient/list", async (req, res) => {
+router.get("/list", async (req, res) => {
   try {
     const response = await getAll();
     res.status(200).json(response);
@@ -21,7 +21,8 @@ router.get("/patient/list", async (req, res) => {
     res.status(500).json({ message: "Error al obtener la lista de pacientes" });
   }
 });
-router.get("/patient/img/", async (req, res) => {
+
+router.get("/img/", async (req, res) => {
   try {
     const response = await avatar();
     res.status(200).json(response);
@@ -30,7 +31,7 @@ router.get("/patient/img/", async (req, res) => {
   }
 });
 
-router.get("/patient/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const data = req.params.id;
     const response = await searchById({ id: data });
@@ -40,9 +41,8 @@ router.get("/patient/:id", async (req, res) => {
   }
 });
 
-
 router.post(
-  "/patient/create",
+  "/create",
   celebrate({
     body: Joi.object({
       nombre: Joi.string().required(),
@@ -68,7 +68,7 @@ router.post(
 );
 
 router.post(
-  "/patient/update",
+  "/update",
   celebrate({
     body: Joi.object({
       id: Joi.string().required(),
@@ -94,7 +94,7 @@ router.post(
 );
 
 router.post(
-  "/patient/delet",
+  "/delet",
   celebrate({
     body: Joi.object({
       id: Joi.string().required(),
