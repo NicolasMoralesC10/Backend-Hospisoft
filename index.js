@@ -8,6 +8,7 @@ import { errors } from "celebrate";
 import { errorHandler } from "./src/middleware/errorHandler.js";
 
 import auth from "./src/routes/auth.js";
+import dashboard from "./src/routes/dashboard.js";
 import medico from "./src/routes/medico.js";
 import patient from "./src/routes/patient.js";
 import cita from "./src/routes/cita.js";
@@ -23,6 +24,7 @@ app.use(cors());
 
 // rutas
 app.use("/api", auth);
+app.use("/api/dashboard", authenticate, verifyRole(["superuser", "admin"]), dashboard);
 app.use("/api/medico", authenticate, verifyRole(["superuser", "admin"]), medico);
 app.use("/api/patient", authenticate, verifyRole(["superuser", "admin"]), patient);
 app.use("/api/cita", authenticate, verifyRole(["superuser", "admin", "secretaria", "medico", "paciente"]), cita);

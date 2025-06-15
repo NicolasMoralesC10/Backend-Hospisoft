@@ -17,6 +17,7 @@ Proyecto de gestión hospitalaria desarrollado con Node.js, MongoDB, y React (Co
 - **multer**: Middleware para manejo de subida de archivos.
 - **nodemon**: Herramienta para reiniciar automáticamente el servidor en desarrollo.
 - **dotenv**: Para cargar variables de entorno desde archivo `.env`.
+- **date-fns**: Librería moderna y modular para manipulación y formateo de fechas.
 
 ---
 
