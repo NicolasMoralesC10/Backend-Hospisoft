@@ -38,7 +38,15 @@ const diagnosticoSchema = new Schema(
     evoClinica: { type: String },
     medicamentos: [medicamentoSchema],
     status: { type: String, required: true },
+    // Campo agregado para prioridad
+    prioridad: { 
+      type: String, 
+      required: true, 
+      enum: ['Alta', 'Media', 'Baja'],
+      default: 'Media'
+    },
   },
   { collection: "diagnostico" }
 );
+
 export default model("Diagnostico", diagnosticoSchema);

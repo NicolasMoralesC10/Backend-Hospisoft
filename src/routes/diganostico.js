@@ -14,7 +14,8 @@ const schema = Joi.object({
   historia: Joi.string().required(),
   examenFisico: Joi.array().required(),
   evoClinica: Joi.string().required(),
-  medicamentos: Joi.array().required()
+  medicamentos: Joi.array().required(),
+  prioridad: Joi.string().required().valid("Alta", "Media", "Baja")
 });
 
 router.get("/diagnostico/list/:documento", async (req, res) => {

@@ -1,6 +1,6 @@
 // controlador medico
 import Diagnostico from "../../models/Diagnostico/diagnostico.js";
-import Patients from "../../models/Paciente/patient.js";
+import Patients from "../../models/patient/patient.js";
 
 export const getAll = async (documento) => {
   const paciente = await Patients.findOne({ documento: Number(documento) });
@@ -13,18 +13,33 @@ export const getAll = async (documento) => {
   try {
     const listaDiagnosticos = await Diagnostico.aggregate([
       { $match: { status: "1" } },
+
+      // Lookup para unir con pacientes
       {
         $lookup: {
-          //$lookup : para unir con la colección patients
-          from: "pacientes",
-          localField: "patientId",
-          foreignField: "_id",
+          from: "pacientes", // nombre de la colección pacientes
+          localField: "patientId", // campo en Diagnostico
+          foreignField: "_id", // campo en pacientes
           as: "patient"
         }
       },
-      { $unwind: "$patient" }, // $unwind : convierte el array patient en un solo objeto
-      { $match: { "patient.documento": Number(documento) } } // filtra por documento
+      { $unwind: "$patient" },
+
+      // Lookup para unir con medicos
+      {
+        $lookup: {
+          from: "medicos", // nombre de la colección médicos (ajusta si es distinto)
+          localField: "medicalId", // campo en Diagnostico que referencia al médico
+          foreignField: "_id", // campo en medicos
+          as: "medico"
+        }
+      },
+      { $unwind: "$medico" },
+
+      // Filtrar por documento del paciente
+      { $match: { "patient.documento": Number(documento) } }
     ]);
+
     return {
       estado: true,
       data: listaDiagnosticos
@@ -38,7 +53,7 @@ export const getAll = async (documento) => {
 };
 
 export const add = async (data) => {
-  console.log(data)
+  console.log(data);
   try {
     const diagnosticoNuevo = new Diagnostico({
       fecha: data.fecha,
@@ -51,6 +66,7 @@ export const add = async (data) => {
       examenFisico: data.examenFisico,
       evoClinica: data.evoClinica,
       medicamentos: data.medicamentos,
+      prioridad: data.prioridad,
       status: 1
     });
     await diagnosticoNuevo.save();
